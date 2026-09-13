@@ -14,3 +14,5 @@
  */
 export { GreenButton } from './components/GreenButton'
 export type { GreenButtonProps } from './components/GreenButton'
+export { GreenPanel } from './components/GreenPanel'
+export type { GreenPanelProps } from './components/GreenPanel'
