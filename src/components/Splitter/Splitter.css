@@ -1,0 +1,119 @@
+/*
+ * Green Steam splitter (`SplitterHandle` — a 3px recessed groove you drag).
+ *
+ * Two values in `docs/components/Splitter.md` have no token: the 3px groove
+ * width and the 8px invisible hit area, so both are local properties an
+ * application can widen without touching the component. The hit area is what
+ * keeps the 3px groove usable as a pointer target.
+ */
+
+.vgui-splitter {
+  --vgui-splitter-handle-size: 3px;
+  --vgui-splitter-hit-area: -8px;
+
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+}
+
+.vgui-splitter--horizontal {
+  grid-template-columns: var(--vgui-splitter-size, 1fr) var(--vgui-splitter-handle-size) 1fr;
+}
+
+.vgui-splitter--vertical {
+  grid-template-rows: var(--vgui-splitter-size, 1fr) var(--vgui-splitter-handle-size) 1fr;
+}
+
+.vgui-splitter__handle {
+  /* Positioned so its hit area and grip paint above the panes. */
+  position: relative;
+  background-color: var(--vgui-surface-dark);
+  border-top: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
+  border-left: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
+  border-bottom: var(--vgui-bevel-width) solid var(--vgui-bevel-light);
+  border-right: var(--vgui-bevel-width) solid var(--vgui-bevel-light);
+  /* On the handle only — `touch-action` on the panes would break their scrolling. */
+  touch-action: none;
+  transition: background-color 100ms linear;
+}
+
+.vgui-splitter--horizontal .vgui-splitter__handle {
+  cursor: col-resize;
+}
+
+.vgui-splitter--vertical .vgui-splitter__handle {
+  cursor: row-resize;
+}
+
+.vgui-splitter__handle:hover,
+.vgui-splitter__handle[data-dragging='true'] {
+  background-color: var(--vgui-surface);
+}
+
+.vgui-splitter__handle[aria-disabled='true'] {
+  cursor: default;
+}
+
+/*
+ * A 3px groove is far below the 24x24 minimum target, so the pointer target is
+ * grown invisibly. It overlaps the panes by 8px on each side, which is the
+ * intended catch area next to the divider.
+ */
+.vgui-splitter__handle::before {
+  content: '';
+  position: absolute;
+  inset: var(--vgui-splitter-hit-area);
+}
+
+.vgui-splitter__handle:focus-visible {
+  outline: var(--vgui-focus-ring);
+  outline-offset: var(--vgui-focus-ring-offset);
+}
+
+.vgui-crisp .vgui-splitter__handle:focus-visible {
+  outline: var(--vgui-focus-ring-valve);
+  outline-offset: var(--vgui-focus-ring-valve-offset);
+}
+
+/* Three grip dots, centred on the groove. */
+.vgui-splitter__handle-grip {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  background-image: radial-gradient(var(--vgui-bevel-light) 1px, transparent 1px);
+  background-size: 3px 3px;
+  background-position: center;
+}
+
+.vgui-splitter--horizontal .vgui-splitter__handle-grip {
+  width: 3px;
+  height: 7px;
+}
+
+.vgui-splitter--vertical .vgui-splitter__handle-grip {
+  width: 7px;
+  height: 3px;
+}
+
+/* The faithful bare groove: no dots at all. */
+.vgui-splitter--plain .vgui-splitter__handle-grip {
+  display: none;
+}
+
+/*
+ * `min-width: 0` / `min-height: 0` are load-bearing: grid items default to
+ * `min-width: auto`, so one long line of content would freeze the divider.
+ */
+.vgui-splitter__pane {
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vgui-splitter__handle {
+    transition: none;
+  }
+}

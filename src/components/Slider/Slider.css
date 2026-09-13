@@ -1,0 +1,158 @@
+.vgui-slider {
+  /* The doc names these shorthand; the token layer spells the same metrics out. */
+  --vgui-slider-track-h: var(--vgui-slider-track-height);
+  --vgui-slider-thumb-w: var(--vgui-slider-thumb-width);
+  --vgui-slider-thumb-h: var(--vgui-slider-thumb-height);
+  --vgui-slider-tick-pitch: 19px;
+
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  width: 100%;
+  min-height: var(--vgui-min-target-size);
+  min-width: 200px;
+  padding-bottom: 12px;
+}
+
+.vgui-slider__input {
+  width: 100%;
+  background: none;
+  appearance: none;
+  cursor: pointer;
+  /* The range input has no text of its own; its only text is the attr() labels. */
+  color: var(--vgui-bevel-light-strong);
+}
+
+/* Endpoint labels, straight from the port: content: attr(min) / attr(max). */
+.vgui-slider__input::before,
+.vgui-slider__input::after {
+  position: absolute;
+  bottom: 0;
+  font-family: var(--vgui-font-mono);
+  font-size: var(--vgui-font-size-small);
+  line-height: 1;
+  pointer-events: none;
+}
+
+.vgui-slider__input::before {
+  left: 0;
+  content: attr(min);
+}
+
+.vgui-slider__input::after {
+  right: 0;
+  content: attr(max);
+}
+
+.vgui-slider__input:focus {
+  outline: none;
+}
+
+/* Draw the ring outside: a slider has no black interior to hide it in. */
+.vgui-slider__input:focus-visible {
+  outline: var(--vgui-focus-ring);
+  outline-offset: 2px;
+}
+
+.vgui-crisp .vgui-slider__input:focus-visible {
+  outline: var(--vgui-focus-ring-valve);
+  outline-offset: var(--vgui-focus-ring-valve-offset);
+}
+
+/* The groove — INSET — with the port's 6px vertical margin. */
+.vgui-slider__input::-webkit-slider-runnable-track {
+  height: var(--vgui-slider-track-h);
+  margin: 6px 0;
+  background-color: var(--vgui-field-bg);
+  border-top: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
+  border-bottom: var(--vgui-bevel-width) solid var(--vgui-bevel-light);
+  border-left: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
+  border-right: var(--vgui-bevel-width) solid var(--vgui-bevel-light);
+}
+
+.vgui-slider__input::-moz-range-track,
+.vgui-slider__input::-moz-range-progress {
+  height: var(--vgui-slider-track-h);
+  margin: 6px 0;
+  background-color: var(--vgui-field-bg);
+  border-top: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
+  border-bottom: var(--vgui-bevel-width) solid var(--vgui-bevel-light);
+  border-left: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
+  border-right: var(--vgui-bevel-width) solid var(--vgui-bevel-light);
+}
+
+/* The thumb — RAISED, centred with `top` (which moves the hit area too). */
+.vgui-slider__input::-webkit-slider-thumb {
+  position: relative;
+  top: calc((var(--vgui-slider-thumb-h) - var(--vgui-slider-track-h)) / -2 - 1px);
+  box-sizing: border-box;
+  width: var(--vgui-slider-thumb-w);
+  height: var(--vgui-slider-thumb-h);
+  border-radius: 0;
+  background-color: var(--vgui-surface);
+  border-top: var(--vgui-bevel-width) solid var(--vgui-bevel-light);
+  border-bottom: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
+  border-left: var(--vgui-bevel-width) solid var(--vgui-bevel-light);
+  border-right: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
+  appearance: none;
+}
+
+/* Gecko centres its own thumb, so no `top` offset here. */
+.vgui-slider__input::-moz-range-thumb {
+  box-sizing: border-box;
+  width: var(--vgui-slider-thumb-w);
+  height: var(--vgui-slider-thumb-h);
+  border-radius: 0;
+  background-color: var(--vgui-surface);
+  border-top: var(--vgui-bevel-width) solid var(--vgui-bevel-light);
+  border-bottom: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
+  border-left: var(--vgui-bevel-width) solid var(--vgui-bevel-light);
+  border-right: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
+}
+
+/* While dragged the thumb presses *into* the groove. */
+.vgui-slider__input:active::-webkit-slider-thumb,
+.vgui-slider__input:active::-moz-range-thumb {
+  border-top-color: var(--vgui-bevel-dark);
+  border-bottom-color: var(--vgui-bevel-light);
+  border-left-color: var(--vgui-bevel-dark);
+  border-right-color: var(--vgui-bevel-light);
+}
+
+/* No disabled thumb treatment exists upstream; drop it into the panel. */
+.vgui-slider__input:disabled::-webkit-slider-thumb,
+.vgui-slider__input:disabled::-moz-range-thumb {
+  border-color: var(--vgui-surface-dark);
+  background-color: var(--vgui-surface-dark);
+}
+
+/* Ticks: the sliderticks tile is 19x5, positioned bottom-left +2px. */
+.vgui-slider__input--ticks {
+  background-image: repeating-linear-gradient(
+    90deg,
+    var(--vgui-text-dim) 0 1px,
+    transparent 1px var(--vgui-slider-tick-pitch)
+  );
+  background-repeat: repeat-x;
+  background-position: bottom 2px left;
+  background-size: var(--vgui-slider-tick-pitch) 5px;
+}
+
+.vgui-slider__value {
+  flex: none;
+  padding-left: var(--vgui-field-inset);
+  font-family: var(--vgui-font-mono);
+  font-size: var(--vgui-font-size-small);
+  line-height: 1;
+  color: var(--vgui-text);
+  text-align: right;
+}
+
+/* 6x12 thumb, 3px track. */
+.vgui-slider--small {
+  --vgui-slider-track-h: 3px;
+  --vgui-slider-thumb-w: 6px;
+  --vgui-slider-thumb-h: 12px;
+
+  min-width: 140px;
+}

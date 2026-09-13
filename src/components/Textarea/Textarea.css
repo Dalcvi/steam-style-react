@@ -1,0 +1,121 @@
+/*
+ * Green Steam multi-line text field — VGUI `TextEntry` with
+ * `SetMultiline(true)` (docs/components/Textarea.md).
+ *
+ * The chrome is identical to TextInput: black interior, inset bevel, 1px caret.
+ * Everything else is behavioural, which is why there is no separate VGUI class.
+ */
+
+.vgui-textarea {
+  --vgui-textarea-min-height: 60px;
+
+  position: relative;
+  display: block;
+}
+
+.vgui-textarea__field {
+  box-sizing: border-box;
+  display: block;
+  width: 100%;
+  /* `rows="1"` on a 200%-zoom browser is a sliver, so a floor is always kept. */
+  min-height: var(--vgui-textarea-min-height);
+  /* The `4 0 4 0` inset, plus 2px of vertical breathing room. */
+  padding: 2px var(--vgui-field-inset);
+  font: inherit;
+  line-height: var(--vgui-line-height);
+  color: var(--vgui-text);
+  background-color: var(--vgui-field-bg);
+  border-top: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
+  border-left: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
+  border-bottom: var(--vgui-bevel-width) solid var(--vgui-bevel-light);
+  border-right: var(--vgui-bevel-width) solid var(--vgui-bevel-light);
+  border-radius: 0;
+  /* Vertical only: a horizontally resizable field reflows the whole page. */
+  resize: vertical;
+  overflow: auto;
+}
+
+.vgui-textarea__field::placeholder {
+  color: var(--vgui-text-dim);
+  opacity: 1;
+}
+
+.vgui-textarea__field::selection {
+  background-color: var(--vgui-selection-bg);
+  color: var(--vgui-selection-text);
+}
+
+/*
+ * The worst case for the Valve ring: the dotted black outline is drawn over the
+ * field's own black interior, where it is literally invisible. The accent ring
+ * is the default and the faithful one is reachable through `.vgui-crisp`.
+ */
+.vgui-textarea__field:focus-visible {
+  outline: var(--vgui-focus-ring);
+  outline-offset: var(--vgui-focus-ring-offset);
+}
+
+.vgui-crisp .vgui-textarea__field:focus-visible {
+  outline: var(--vgui-focus-ring-valve);
+  outline-offset: var(--vgui-focus-ring-valve-offset);
+}
+
+.vgui-textarea__field:read-only {
+  color: var(--vgui-text-muted);
+}
+
+.vgui-textarea__field:disabled {
+  color: var(--vgui-text-disabled);
+  text-shadow: 1px 1px 0 var(--vgui-text-disabled-shadow);
+  cursor: not-allowed;
+}
+
+.vgui-textarea--invalid .vgui-textarea__field {
+  border-top-color: var(--vgui-danger);
+  border-left-color: var(--vgui-danger);
+}
+
+/* `--fixed`: height comes from `rows` alone. */
+.vgui-textarea--fixed .vgui-textarea__field {
+  resize: none;
+}
+
+/*
+ * `--auto-grow` height is set by JS from `scrollHeight`; `max-height` and
+ * `overflow-y` are the fallback for tall content. `height: auto` is deliberately
+ * not declared here — the script needs `auto` only for the measurement pass.
+ */
+.vgui-textarea--auto-grow .vgui-textarea__field {
+  resize: none;
+  overflow: hidden;
+  overflow-y: auto;
+}
+
+.vgui-textarea--mono .vgui-textarea__field {
+  font-family: var(--vgui-font-mono);
+  font-size: var(--vgui-font-size-small);
+}
+
+/*
+ * The counter overlays the field's trailing corner rather than taking a row of
+ * its own: a VGUI property sheet has no space for one, and `aria-hidden` means
+ * it never has to be read out.
+ */
+.vgui-textarea__count {
+  position: absolute;
+  right: var(--vgui-field-inset);
+  bottom: 2px;
+  font-size: var(--vgui-font-size-small);
+  color: var(--vgui-text-dim);
+  pointer-events: none;
+}
+
+/* `--clay` has no prop of its own; callers opt in through `className`. */
+.vgui-textarea--clay .vgui-textarea__field:disabled {
+  color: var(--vgui-clay-glyph-dim);
+  text-shadow: none;
+}
+
+.vgui-textarea--clay .vgui-textarea__count {
+  color: var(--vgui-clay-glyph-dim);
+}

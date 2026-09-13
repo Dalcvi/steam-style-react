@@ -1,0 +1,125 @@
+/*
+ * Green Steam radio button and its group.
+ *
+ * Geometry is identical to `.vgui-checkbox` — same 15×15, same 3px inset, same
+ * *inverted* bevel, same dotted `rad*Focus` ring — and only the shape and the
+ * mark differ (docs/components/Radio.md). The two stylesheets are kept as
+ * siblings rather than sharing a `vgui-check-control` base: a shared rule would
+ * have to live in one component's stylesheet and be imported by the other, and
+ * per-component CSS is what travels with a tree-shaken import.
+ *
+ * The circle and the dot are pure geometry — `border-radius` and a filled
+ * `::after` — so no sprites ship.
+ *
+ * Deviations required by WCAG:
+ *
+ *   - `rad*Focus`'s dotted ring is 1.15:1 on the circle face; the shipped ring
+ *     is `--vgui-focus-ring` at the same `-3px` offset, with the literal ring
+ *     behind the `.vgui-crisp` opt-in.
+ *   - A horizontal group wraps instead of overflowing at 200% zoom.
+ */
+
+.vgui-radio-group {
+  display: block;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font: inherit;
+  color: var(--vgui-text);
+}
+
+/* The legend is the group's accessible name: "Fullscreen, selected, 1 of 3"
+ * is only intelligible with the question attached. */
+.vgui-radio-group__legend {
+  padding: 0;
+  color: var(--vgui-text);
+}
+
+.vgui-radio-group__options {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding-top: 3px;
+}
+
+.vgui-radio-group--horizontal .vgui-radio-group__options {
+  flex-direction: row;
+  flex-wrap: wrap;
+  column-gap: 12px;
+  row-gap: var(--vgui-field-inset);
+}
+
+.vgui-radio {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font: inherit;
+  color: var(--vgui-text);
+  cursor: pointer;
+}
+
+/* Hidden but present and focusable — never `display: none`. */
+.vgui-radio__input {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.vgui-radio__circle {
+  position: relative;
+  flex: 0 0 auto;
+  box-sizing: border-box;
+  inline-size: var(--vgui-checkbox-size);
+  block-size: var(--vgui-checkbox-size);
+  border-radius: 50%;
+  background-color: var(--vgui-surface);
+  border-top: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
+  border-left: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
+  border-bottom: var(--vgui-bevel-width) solid var(--vgui-bevel-light);
+  border-right: var(--vgui-bevel-width) solid var(--vgui-bevel-light);
+}
+
+/* `radSelStd`: a centred 5px filled dot, leaving a ring of background between
+ * the mark and the border, which is what the sprite shows. */
+.vgui-radio__input:checked ~ .vgui-radio__circle::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  inline-size: 5px;
+  block-size: 5px;
+  margin: -2.5px 0 0 -2.5px;
+  border-radius: 50%;
+  background-color: var(--vgui-text-strong);
+}
+
+.vgui-radio__input:focus-visible ~ .vgui-radio__circle {
+  outline: var(--vgui-focus-ring);
+  outline-offset: var(--vgui-focus-ring-offset);
+}
+
+/* Valve's literal `rad*Focus` ring, reachable only through the opt-in. */
+.vgui-crisp .vgui-radio__input:focus-visible ~ .vgui-radio__circle {
+  outline: var(--vgui-focus-ring-valve);
+  outline-offset: var(--vgui-focus-ring-valve-offset);
+}
+
+.vgui-radio__input:disabled ~ .vgui-radio__label {
+  color: var(--vgui-text-disabled);
+  text-shadow: 1px 1px 0 var(--vgui-text-disabled-shadow);
+}
+
+.vgui-radio__input:disabled ~ .vgui-radio__circle {
+  cursor: not-allowed;
+}
+
+.vgui-radio__label {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}

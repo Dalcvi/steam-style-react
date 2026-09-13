@@ -1,0 +1,76 @@
+/*
+ * Green Steam title bar — the uppercase caption strip
+ * (docs/components/TitleBar.md).
+ *
+ * Three details that are easy to get wrong and are deliberate here:
+ *
+ *   1. `letter-spacing` inherits into anything placed in `__actions`, so the
+ *      trailing controls reset both the tracking and the casing.
+ *   2. `min-width: 0` on `__text` is mandatory, or the flex item refuses to
+ *      shrink below its content and the ellipsis never appears.
+ *   3. `min-height`, never a fixed `height`, so the caption survives 200% zoom
+ *      (WCAG 1.4.4).
+ */
+
+.vgui-titlebar {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: var(--vgui-titlebar-height);
+  margin-bottom: 1em;
+  font-family: var(--vgui-font);
+  font-size: var(--vgui-font-size-small);
+  font-weight: bold;
+  line-height: var(--vgui-titlebar-height);
+  letter-spacing: var(--vgui-chrome-tracking);
+  text-transform: uppercase;
+  color: var(--vgui-text-strong);
+}
+
+.vgui-titlebar__icon {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+}
+
+.vgui-titlebar__text {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vgui-titlebar__actions {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  /* Never track or uppercase the controls parked in the title bar. */
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.vgui-titlebar--subdued {
+  color: var(--vgui-text-muted);
+}
+
+.vgui-titlebar--clay {
+  color: var(--vgui-clay-glyph);
+}
+
+/*
+ * `2px` tracking is the theme's signature and also a legibility tax at 12px, so
+ * readers who ask for more contrast get it back.
+ */
+@media (prefers-contrast: more) {
+  .vgui-titlebar {
+    letter-spacing: 0.5px;
+  }
+}

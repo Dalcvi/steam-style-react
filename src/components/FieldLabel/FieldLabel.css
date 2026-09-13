@@ -1,0 +1,88 @@
+/*
+ * Green Steam field label.
+ *
+ * `Label` in `steam.styles:1147` is four declarations: a font family, a size, a
+ * `textcolor` and a `selectedtextcolor`. No bevel, no face, no sprite, **no
+ * hover** and no disabled state — the sunken disabled treatment comes from the
+ * scheme's `DisabledText1` over `DisabledText2` pair instead
+ * (docs/components/FieldLabel.md).
+ *
+ * The whole visual identity is therefore colour, size and the two-colour shadow
+ * trick. Two things are deliberate:
+ *
+ *   1. **No hover state.** A caption that brightens on hover makes a VGUI layout
+ *      look like a modern web page: everything starts to look clickable.
+ *   2. **No uppercase and no tracking.** Uppercase chrome text is `StatusLabel`'s
+ *      signature, not this component's; a caption loses readability and gains
+ *      nothing.
+ *
+ * `overflow-wrap: anywhere` is not cosmetic — form captions are the most
+ * translated strings in an application, and the corpus never had to care because
+ * it was English-only and bitmap-fonted.
+ */
+
+.vgui-field-label {
+  display: inline-block;
+  font: inherit;
+  font-size: var(--vgui-font-size);
+  line-height: var(--vgui-line-height);
+  max-inline-size: 100%;
+  overflow-wrap: anywhere;
+  color: var(--vgui-text-muted);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+/*
+ * The sunken look, exactly as `steamscheme.res:50-51` intends it: the dark copy
+ * drawn at +1px +1px and the light copy on top. A `text-shadow` is equivalent to
+ * two stacked elements and cannot drift out of alignment. It is decorative — the
+ * disabled control carries the meaning.
+ */
+.vgui-field-label[data-disabled='true'] {
+  color: var(--vgui-text-disabled);
+  text-shadow: 1px 1px 0 var(--vgui-text-disabled-shadow);
+}
+
+.vgui-field-label--strong {
+  color: var(--vgui-text-strong);
+}
+
+.vgui-field-label--muted {
+  color: var(--vgui-text-dim);
+}
+
+.vgui-field-label--heading {
+  color: var(--vgui-heading);
+}
+
+.vgui-field-label--error {
+  color: var(--vgui-danger);
+}
+
+/*
+ * The asterisk is a *shape*, but it is invisible to assistive tech, which is why
+ * `required` also sets `aria-required` on the label and should be paired with
+ * `required` on the control.
+ */
+.vgui-field-label--required::after {
+  content: '*';
+  margin-inline-start: 0.25em;
+  color: var(--vgui-danger);
+}
+
+/*
+ * Only the `<label>` variant is ever focusable, and only in a form context. The
+ * literal Valve ring is a dotted `BorderDark` (1.87:1), so the shipped ring is
+ * the accessible accent ring — the same ring every other control in the library
+ * uses (docs/foundations.md §4, "Focus rings").
+ */
+label.vgui-field-label:focus-visible {
+  outline: var(--vgui-focus-ring);
+  outline-offset: 2px;
+}
+
+.vgui-crisp label.vgui-field-label:focus-visible {
+  outline: var(--vgui-focus-ring-valve);
+  outline-offset: var(--vgui-focus-ring-valve-offset);
+}

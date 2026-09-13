@@ -1,0 +1,137 @@
+/*
+ * Green Steam throbber (`minithrobber01..12`).
+ *
+ * Valve's twelve 20×20 `.tga` frames are copyrighted artwork and this package is
+ * redistributable, so the default is a procedural stand-in that reproduces the
+ * two things that make the original read as a turn-of-the-millennium throbber:
+ * twelve HARD steps (`steps(12, end)`), and a flat trailing fade rather than a
+ * gradient (docs/components/Spinner.md). A consumer who owns the artwork can
+ * point at their own sheet with the `frames` prop.
+ *
+ * The animation is CSS-only — no `requestAnimationFrame`, no `setInterval` — so
+ * it cannot leak a timer, and it is switched off wholesale under
+ * `prefers-reduced-motion`.
+ *
+ * `--vgui-spinner-size`, `--vgui-spinner-duration` and `--vgui-spinner-easing`
+ * are component-local and declared here, per foundations.md §4.
+ */
+
+.vgui-spinner {
+  --vgui-spinner-size: 20px;
+  --vgui-spinner-duration: 1.2s;
+  --vgui-spinner-easing: steps(12, end);
+
+  display: inline-grid;
+  place-items: center;
+  inline-size: var(--vgui-spinner-size);
+  block-size: var(--vgui-spinner-size);
+  color: var(--vgui-text-strong);
+}
+
+/* Twelve bars, each rotated 30° further than the last. */
+.vgui-spinner__frame {
+  position: relative;
+  inline-size: 100%;
+  block-size: 100%;
+  animation: vgui-spinner-step var(--vgui-spinner-duration) var(--vgui-spinner-easing)
+    infinite;
+}
+
+.vgui-spinner__frame::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  /* Twelve hard steps of a fading wedge: two discrete opacity plateaus, no ramp. */
+  background: conic-gradient(
+    from 0deg,
+    currentColor 0deg 30deg,
+    color-mix(in srgb, currentColor 55%, transparent) 30deg 60deg,
+    transparent 60deg 360deg
+  );
+  /* Only the annulus is painted, so the sweep reads as a ring of bars.
+   * `currentColor` is opaque, which is all a mask's alpha channel needs, so the
+   * mask needs no colour literal. */
+  mask: radial-gradient(circle, transparent 0 30%, currentColor 30% 45%, transparent 45%);
+}
+
+@keyframes vgui-spinner-step {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* The at-rest frame (`minithrobberinactive.tga`): a still ring. */
+.vgui-spinner--paused .vgui-spinner__frame {
+  animation: none;
+}
+
+.vgui-spinner--paused .vgui-spinner__frame::before {
+  background: currentColor;
+}
+
+/* A 12-bar sweep is illegible below 16px, so the plate is generous instead. */
+.vgui-spinner--block {
+  --vgui-spinner-size: 32px;
+
+  inline-size: 100%;
+  block-size: 100%;
+  min-inline-size: 100px;
+  min-block-size: 75px;
+  background-color: var(--vgui-surface-dark);
+}
+
+/* `--inline-label`: the 20×20 throbber with its label beside it. */
+.vgui-spinner--inline-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  inline-size: auto;
+  block-size: auto;
+}
+
+.vgui-spinner--inline-label .vgui-spinner__frame {
+  flex: none;
+  inline-size: var(--vgui-spinner-size);
+  block-size: var(--vgui-spinner-size);
+}
+
+.vgui-spinner__label {
+  color: var(--vgui-text-muted);
+  font-size: var(--vgui-font-size-small);
+  white-space: nowrap;
+}
+
+/* A consumer's own frame set, stepped the same way. */
+.vgui-spinner--sprite .vgui-spinner__frame {
+  background-image: var(--vgui-spinner-sheet);
+  background-repeat: no-repeat;
+  background-size: calc(12 * var(--vgui-spinner-size)) 100%;
+  animation-name: vgui-spinner-sheet;
+}
+
+.vgui-spinner--sprite .vgui-spinner__frame::before {
+  background: none;
+  mask: none;
+}
+
+@keyframes vgui-spinner-sheet {
+  to {
+    background-position-x: calc(-12 * var(--vgui-spinner-size));
+  }
+}
+
+/*
+ * Reduced motion is mandatory, not a nicety (WCAG 2.3.3 / 2.2.2). The spinner
+ * becomes a static ring; because a still spinner is ambiguous, a consumer must
+ * pair it with a text label — `showLabel` is how.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .vgui-spinner__frame {
+    animation: none;
+  }
+
+  .vgui-spinner__frame::before {
+    background: currentColor;
+  }
+}

@@ -1,0 +1,86 @@
+/*
+ * Green Steam tooltip — the one place in the theme where the palette inverts:
+ * near-black text on a maize card (docs/components/Tooltip.md).
+ *
+ * The card is a floating surface, so it is positioned by the consumer's
+ * positioning logic. The `--placement-*` modifiers exist as that hook and
+ * additionally set the transform origin, so a consumer's own enter/exit
+ * transition grows away from the trigger rather than from the card's corner.
+ */
+
+.vgui-tooltip {
+  position: absolute;
+  z-index: 1000;
+  box-sizing: border-box;
+  max-width: 320px;
+  padding: 4px 8px;
+  background-color: var(--vgui-heading);
+  /* Uniform on all four sides — the bevel is deliberately absent, which is what
+     makes the card read as floating rather than raised. */
+  border: 1px solid var(--vgui-surface-light);
+  color: var(--vgui-selection-text);
+  font-family: var(--vgui-font);
+  font-size: var(--vgui-font-size);
+  line-height: var(--vgui-line-height);
+  overflow-wrap: anywhere;
+}
+
+.vgui-tooltip__headline {
+  display: block;
+  /* Valve's literal value from `tooltip_headline`. It is not a typo: browsers
+     clamp it to the heaviest available weight. */
+  font-weight: 1000;
+}
+
+.vgui-tooltip__body {
+  display: block;
+}
+
+.vgui-tooltip--compact {
+  padding: 2px 6px;
+  font-size: var(--vgui-font-size-small);
+}
+
+/* The shortcut chip. `kbd` has no UA styling worth keeping, so the bevel is
+   declared here rather than reset. */
+.vgui-tooltip__key {
+  display: inline-block;
+  padding: 0 4px;
+  background-color: var(--vgui-surface);
+  border-top: 1px solid var(--vgui-bevel-light);
+  border-left: 1px solid var(--vgui-bevel-light);
+  border-bottom: 1px solid var(--vgui-bevel-dark);
+  border-right: 1px solid var(--vgui-bevel-dark);
+  color: var(--vgui-text);
+  font-family: var(--vgui-font-mono);
+}
+
+/* `--keyboard`: a hint that is only a shortcut, so the card shrinks to it. */
+.vgui-tooltip--keyboard {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  padding: 2px 6px;
+}
+
+/* `--error`: a validation hint. Colour alone is never the indicator, so this
+   only draws the border — the caller owes an icon or wording as well. */
+.vgui-tooltip--error {
+  border-color: var(--vgui-danger);
+}
+
+.vgui-tooltip--placement-top {
+  transform-origin: bottom center;
+}
+
+.vgui-tooltip--placement-bottom {
+  transform-origin: top center;
+}
+
+.vgui-tooltip--placement-left {
+  transform-origin: center right;
+}
+
+.vgui-tooltip--placement-right {
+  transform-origin: center left;
+}

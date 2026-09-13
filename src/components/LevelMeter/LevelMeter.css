@@ -1,0 +1,117 @@
+/*
+ * Green Steam level meter — the `rampUp_1..4` / `rampDown_1..4` sprite family
+ * drawn procedurally (docs/components/LevelMeter.md).
+ *
+ * There is no `LevelMeter` block in `steam.styles`, so the meter has no corpus
+ * colours at all: shape carries the reading and the palette comes from the ping
+ * tokens that `foundations.md` already defines for a table's signal bars.
+ *
+ * `--vgui-ping-high` (#4C5844) is byte-identical to `--vgui-surface`
+ * foundations.md:92/:68) — the "good" reading would be literally invisible on a
+ * panel, so levels 3 and 4 use `--vgui-heading` instead, as the component doc
+ * instructs. Levels 1 and 2 keep the ping tokens so a table column and a
+ * standalone meter never disagree.
+ */
+
+.vgui-level-meter {
+  --vgui-level-meter-segment: 20px;
+  --vgui-level-meter-gap: 1px;
+  /* The artwork defines four frames; any other count is a deliberate departure. */
+  --vgui-level-meter-level: 4;
+  --vgui-level-meter-count: var(--vgui-level-meter-level);
+
+  display: inline-flex;
+  align-items: flex-end;
+  gap: var(--vgui-level-meter-gap);
+  block-size: var(--vgui-level-meter-segment);
+  /* A readout, not a target: not focusable, not interactive, no hover state. */
+  cursor: default;
+  user-select: none;
+}
+
+.vgui-level-meter__segment {
+  inline-size: var(--vgui-level-meter-segment);
+  block-size: var(--vgui-level-meter-segment);
+  background-color: var(--vgui-text-dim);
+  /* The theme has no rounded corners anywhere, and the sprites are visibly
+     discrete: hard-edged segments with a 1px unlit gap, no gradient. The outline
+     keeps the segment *shape* readable even when the fill fails contrast. */
+  outline: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
+  outline-offset: calc(-1 * var(--vgui-bevel-width));
+}
+
+/*
+ * Lit segments carry a stepped height profile — 25/50/75/100% for the four-frame
+ * family (up) and its mirror (down) — so the level survives without colour. The
+ * step is derived from the segment's ordinal rather than written out per count,
+ * which keeps the corpus geometry exact while letting `segments` degrade sanely.
+ */
+.vgui-level-meter--up .vgui-level-meter__segment.is-lit {
+  block-size: calc(var(--vgui-level-meter-index) / var(--vgui-level-meter-count) * 100%);
+}
+
+.vgui-level-meter--down .vgui-level-meter__segment.is-lit {
+  block-size: calc(
+    (var(--vgui-level-meter-count) - var(--vgui-level-meter-index) + 1) /
+      var(--vgui-level-meter-count) * 100%
+  );
+}
+
+/* Severity by level, using the same tokens as a table's ping column. */
+.vgui-level-meter__segment.is-lit {
+  background-color: var(--vgui-ping-medium);
+}
+
+.vgui-level-meter[data-level='1'] .vgui-level-meter__segment.is-lit {
+  background-color: var(--vgui-ping-low);
+}
+
+.vgui-level-meter[data-level='2'] .vgui-level-meter__segment.is-lit {
+  background-color: var(--vgui-ping-medium);
+}
+
+/* `--vgui-ping-high` is the surface colour: use the heading tone for a good
+   reading, because a meter that vanishes at 4/4 reads as broken. */
+.vgui-level-meter[data-level='3'] .vgui-level-meter__segment.is-lit,
+.vgui-level-meter[data-level='4'] .vgui-level-meter__segment.is-lit {
+  background-color: var(--vgui-heading);
+}
+
+/* Compact, for a server-list cell. */
+.vgui-level-meter--inline {
+  --vgui-level-meter-segment: 12px;
+}
+
+.vgui-level-meter[aria-disabled='true'] .vgui-level-meter__segment {
+  opacity: 0.5;
+}
+
+/* Dim the reading itself, not just the whole control, so a disabled meter cannot
+   be mistaken for a live one. */
+.vgui-level-meter[aria-disabled='true'] .vgui-level-meter__segment.is-lit {
+  background-color: var(--vgui-text-dim);
+}
+
+/*
+ * Meaningful motion only, and CSS-only: no frame timer means nothing to clean up
+ * on unmount and no test can hang on it.
+ */
+.vgui-level-meter--animating .vgui-level-meter__segment.is-lit {
+  animation: vgui-level-pulse 900ms steps(4, end) infinite;
+}
+
+@keyframes vgui-level-pulse {
+  0% {
+    opacity: 0.35;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vgui-level-meter--animating .vgui-level-meter__segment.is-lit {
+    animation: none;
+  }
+}

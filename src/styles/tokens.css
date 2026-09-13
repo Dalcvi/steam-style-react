@@ -1,0 +1,186 @@
+/*
+ * Green Steam (VGUI) design tokens.
+ *
+ * Every token is declared on `[data-vgui-theme]` and never on `:root`, so a
+ * component can be dropped into a page without theming the page. Components
+ * read these tokens bare — a component that has no sensible shared token
+ * declares a component-local `--vgui-<name>-*` property instead, always as
+ * `var(--vgui-shared-token, <literal>)` so it still resolves unthemed.
+ *
+ * Derived from VGUI.css <https://github.com/AlpyneDreams/vgui.css> (MIT) and
+ * Valve's own `steamscheme.res` / `steam.styles`. See `docs/foundations.md` §3
+ * for the palette and §9 for the theme layer.
+ */
+
+[data-vgui-theme] {
+  /* --- Surfaces (docs/foundations.md §3) --- */
+  --vgui-surface: #4c5844; /* GreenBG */
+  --vgui-surface-alt: #4a5942; /* almost-light-primary */
+  --vgui-surface-light: #5a6a50; /* LightGreenBG */
+  --vgui-surface-dark: #3e4637; /* DarkGreenBG */
+  /* Field and popup interiors. Every VGUI `TextEntry` and `ComboBox` paints a
+   * genuinely black inset rather than a darker green — it is the one place the
+   * theme leaves the palette, and it is what makes the caret legible. */
+  --vgui-field-bg: #000000;
+
+  /* --- Bevel (§4) --- */
+  --vgui-bevel-light: #899281; /* BorderBright, community value */
+  --vgui-bevel-light-strong: #b8c4ad; /* shadelighter */
+  --vgui-bevel-dark: #292d23; /* BorderDark, community value */
+  --vgui-bevel-width: 1px;
+
+  /* --- Text --- */
+  --vgui-text: #d8ded3; /* OffWhite */
+  --vgui-text-strong: #ffffff; /* White */
+  --vgui-text-muted: #a0aa95; /* Label */
+  --vgui-text-dim: #758666; /* DimListText */
+  --vgui-text-disabled: #75806f; /* DisabledText1 */
+  --vgui-text-disabled-shadow: #282e22; /* DisabledText2 */
+  --vgui-heading: #c4b550; /* Maize */
+  --vgui-text-hover: #e3e41f;
+
+  /* --- Accent --- */
+  --vgui-accent: #c4b550; /* Maize */
+  --vgui-accent-dark: #91863c; /* MaizeBG */
+  --vgui-accent-darker: #96892d;
+  --vgui-selection-bg: #96892d;
+  --vgui-selection-text: #232421;
+  --vgui-border-selection: #000000;
+
+  /* --- Status --- */
+  --vgui-steam-green: #7ea64b; /* FullGreen */
+  --vgui-success: #1ae225;
+  --vgui-warning: #c4b550;
+  --vgui-danger: #e2251a;
+  --vgui-info: #0900ff;
+  --vgui-link: #aaaaaa;
+  /* Console error lines. `Highlight3` (`steam.styles:91`) is a deliberately
+   * muted brick rather than `--vgui-danger`'s signal red — the console prints
+   * errors constantly, so they must not shout. */
+  --vgui-console-error: #ad4547;
+
+  /* --- Server-browser ping bars --- */
+  --vgui-ping-low: #6a1610;
+  --vgui-ping-medium: #91863c;
+  --vgui-ping-high: #4c5844;
+
+  /* --- Friends roster (docs/foundations.md §3) --- */
+  --vgui-friends-selected: #111111;
+  --vgui-friends-ignored: #f86c4f;
+  --vgui-friends-avatar-over: #ffffff;
+
+  /* --- Clay property-sheet chrome (§3) --- */
+  --vgui-clay-surface: #464646; /* ClayBG */
+  --vgui-clay-light: #686a65; /* LightClayBG */
+  --vgui-clay-button: #7d8078; /* LightClayButtonBG */
+  --vgui-clay-bottom: #5c5957; /* ClaySheetBottom */
+  --vgui-clay-dark: #2f312d; /* DarkClayBG */
+  --vgui-clay-glyph: #adb5a8; /* ClayLightGreen */
+  --vgui-clay-glyph-dim: #a6aca2; /* ClayDimLightGreen */
+
+  /* --- Typography (§5) --- */
+  --vgui-font: "Trebuchet MS", "Verdana", "DejaVu Sans", Tahoma, sans-serif;
+  --vgui-font-mono: "Lucida Console", "DejaVu Sans Mono", Consolas, monospace;
+  --vgui-font-size: 14px;
+  --vgui-font-size-small: 12px;
+  --vgui-font-size-large: 16px;
+  --vgui-line-height: 1.25;
+  --vgui-chrome-tracking: 2px;
+
+  /* --- Metrics (§6) ---
+   * A recurring scale of 2, 4, 6, 8, 10, 12, 18, 20, 25, 26 falls out of
+   * Valve's layout files. There is deliberately no 4/8px grid. */
+  --vgui-control-height: 25px;
+  --vgui-button-min-width: 75px;
+  --vgui-checkbox-size: 15px;
+  --vgui-scrollbar-size: 18px;
+  --vgui-titlebar-height: 18px;
+  --vgui-titlebar-height-valve: 28px;
+  --vgui-frame-control-size: 20px;
+  --vgui-resize-grip: 12px;
+  --vgui-progress-height: 26px;
+  --vgui-progress-fill: 16px;
+  --vgui-progress-gutter: 4px;
+  --vgui-slider-track-height: 4px;
+  --vgui-slider-thumb-width: 8px;
+  --vgui-slider-thumb-height: 16px;
+  --vgui-dialog-button-width: 92px;
+  --vgui-dialog-button-height: 24px;
+  --vgui-window-max-width: 780px;
+  --vgui-field-inset: 4px;
+  /* WCAG 2.5.8 minimum target size. Valve's 18px `--small` chrome falls below
+   * it, so those controls grow an invisible hit area to this. */
+  --vgui-min-target-size: 24px;
+
+  /* --- Focus (§4)
+   * Valve's literal rings are invisible on these surfaces (1.87:1), so the
+   * accessible ring is the default and the Valve ring is available to
+   * components that explicitly opt into pixel-perfect rendering. */
+  --vgui-focus-ring: 2px solid var(--vgui-accent);
+  --vgui-focus-ring-offset: -3px;
+  --vgui-focus-ring-valve: 1px dashed var(--vgui-bevel-dark);
+  --vgui-focus-ring-valve-offset: -4px;
+}
+
+/*
+ * `vgui1` — the bevel colours exactly as `steamscheme.res` defines them, for
+ * anyone chasing 2003 fidelity. See docs/foundations.md §8.
+ */
+[data-vgui-theme='vgui1'] {
+  --vgui-bevel-light: #808080;
+  --vgui-bevel-dark: #282e22;
+}
+
+/*
+ * `black` — the `blacksteam` palette from VGUI.css. Note the field interior is
+ * genuinely black here, which is why the `green` theme's placeholder contrast
+ * problem (docs/foundations.md §10) does not apply to this variant.
+ */
+[data-vgui-theme='black'] {
+  --vgui-surface: #212121;
+  --vgui-surface-alt: #212121;
+  --vgui-surface-light: #181818;
+  --vgui-surface-dark: #080808;
+  --vgui-bevel-light: #323232;
+  --vgui-bevel-light-strong: #4a4a4a;
+  --vgui-bevel-dark: #080808;
+  --vgui-accent: #f0b43f;
+  --vgui-accent-dark: #96892d;
+  --vgui-heading: #f0b43f;
+  --vgui-ping-high: #212121;
+}
+
+/*
+ * `warm` — the "TF2-esque" variant shipped in OldSteam-Theme's `universal.css`.
+ */
+[data-vgui-theme='warm'] {
+  --vgui-surface: #393532;
+  --vgui-surface-alt: #393532;
+  --vgui-surface-light: #a39884;
+  --vgui-surface-dark: #221f1c;
+  --vgui-bevel-light: #4a453d;
+  --vgui-bevel-light-strong: #6b6457;
+  --vgui-bevel-dark: #4a453d;
+  --vgui-text: #d9d9d9;
+  --vgui-text-muted: #c8bca2;
+  --vgui-text-dim: #c8bca2;
+  --vgui-text-disabled: #575248;
+  --vgui-text-disabled-shadow: #575248;
+  --vgui-steam-green: #4a453d;
+}
+
+/*
+ * `clay` — the grey property-sheet chrome. Valve deliberately renders the
+ * settings sheets less green than the rest of the client.
+ */
+[data-vgui-theme='clay'] {
+  --vgui-surface: #464646;
+  --vgui-surface-alt: #464646;
+  --vgui-surface-light: #686a65;
+  --vgui-surface-dark: #2f312d;
+  --vgui-bevel-light: #7d8078;
+  --vgui-bevel-light-strong: #adb5a8;
+  --vgui-bevel-dark: #2f312d;
+  --vgui-accent: #adb5a8;
+  --vgui-heading: #adb5a8;
+}

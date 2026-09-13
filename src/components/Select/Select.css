@@ -1,0 +1,299 @@
+/*
+ * Green Steam select — the VGUI `ComboBox` (docs/components/Select.md).
+ *
+ * Three details separate a real VGUI combobox from a styled `<select>` and all
+ * three are kept here:
+ *
+ *   1. The field half is a field: black `TextEntryBG` interior with the inset
+ *      bevel a `TextEntry` has, so `--vgui-field-bg` paints the trigger.
+ *   2. The button half is 18px of its own raised control with its own bevel,
+ *      not a background-image caret, which is what makes the separation read.
+ *   3. The popup is a `Menu`: `--vgui-surface-dark` face, one bevel-dark
+ *      border, 18px rows and an `--vgui-accent-dark` selection bar.
+ *
+ * The caret is drawn with `clip-path` instead of the recipe's
+ * `mask-image: var(--vgui-glyph-caret-down)`: no glyph module or caret token
+ * exists in `src`, so the 7x4 triangle is traced inline. `--vgui-field-bg`
+ * (#000, field and popup interiors) is named by this doc but is absent from
+ * `src/styles/tokens.css`; no literal fallback is declared for it.
+ */
+
+.vgui-select {
+  /* Component-local metrics: the 19px field, 18px button half and 18px rows
+   * come from the CSS port, not from the theme (the theme's scale has no 19px
+   * and its 18px values are the scrollbar and the title bar). */
+  --vgui-select-height: 19px;
+  --vgui-select-button-width: 18px;
+  --vgui-select-option-height: 18px;
+  --vgui-select-list-max-height: 200px;
+  /* The caret gutter, reserved on every row so labels never shift when the
+   * selection moves. Sized to the 7px glyph plus the 4px inset. */
+  --vgui-select-check-width: 15px;
+
+  position: relative;
+  display: inline-block;
+  min-inline-size: 0;
+  font: inherit;
+  color: var(--vgui-text);
+}
+
+.vgui-select--small {
+  --vgui-select-height: 18px;
+}
+
+.vgui-select--large {
+  --vgui-select-height: var(--vgui-control-height);
+}
+
+/* --- The field half ------------------------------------------------------ */
+
+.vgui-select__trigger,
+.vgui-select__field {
+  box-sizing: border-box;
+  display: flex;
+  align-items: stretch;
+  inline-size: 100%;
+  min-block-size: var(--vgui-select-height);
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  background-color: var(--vgui-field-bg);
+  border-top: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
+  border-left: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
+  border-bottom: var(--vgui-bevel-width) solid var(--vgui-bevel-light);
+  border-right: var(--vgui-bevel-width) solid var(--vgui-bevel-light);
+  border-radius: 0;
+  text-align: left;
+  cursor: pointer;
+}
+
+/* Open: `TextEntryBorderFocused` on the field. VGUI recolours the whole frame;
+ * the theme has no split light/dark focused bevel, so all four sides take the
+ * accent. */
+.vgui-select--open .vgui-select__trigger,
+.vgui-select--open .vgui-select__field {
+  border-color: var(--vgui-accent);
+}
+
+/* Invalid: the danger border sits on the light half, matching `TextInput`. */
+.vgui-select--invalid .vgui-select__trigger,
+.vgui-select--invalid .vgui-select__field {
+  border-top-color: var(--vgui-danger);
+  border-left-color: var(--vgui-danger);
+}
+
+.vgui-select__trigger:focus-visible,
+.vgui-select__input:focus-visible {
+  outline: var(--vgui-focus-ring);
+  outline-offset: var(--vgui-focus-ring-offset);
+}
+
+/* Pixel-perfect rendering is opt-in, as in the theme layer. */
+.vgui-crisp .vgui-select__trigger:focus-visible,
+.vgui-crisp .vgui-select__input:focus-visible {
+  outline: var(--vgui-focus-ring-valve);
+  outline-offset: var(--vgui-focus-ring-valve-offset);
+}
+
+.vgui-select__value {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  min-inline-size: 0;
+  padding: 0 var(--vgui-field-inset);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: left;
+}
+
+.vgui-select__value[data-placeholder='true'] {
+  color: var(--vgui-text-dim);
+}
+
+/* Editable: the field half is a text entry, so the caret is a text caret. */
+.vgui-select__editable .vgui-select__field {
+  cursor: text;
+}
+
+.vgui-select__input {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+  padding: 0 var(--vgui-field-inset);
+  font: inherit;
+  color: var(--vgui-text);
+  background-color: transparent;
+  border: 0;
+  border-radius: 0;
+  caret-color: var(--vgui-text);
+}
+
+.vgui-select__input::placeholder {
+  color: var(--vgui-text-dim);
+  opacity: 1;
+}
+
+.vgui-select__input::selection {
+  background-color: var(--vgui-selection-bg);
+  color: var(--vgui-selection-text);
+}
+
+/* --- The button half ----------------------------------------------------- */
+
+.vgui-select__button {
+  box-sizing: border-box;
+  flex: 0 0 var(--vgui-select-button-width);
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0;
+  background-color: var(--vgui-surface);
+  border-top: var(--vgui-bevel-width) solid var(--vgui-bevel-light);
+  border-left: var(--vgui-bevel-width) solid var(--vgui-bevel-light);
+  border-bottom: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
+  border-right: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
+  border-radius: 0;
+  cursor: pointer;
+}
+
+/* The 7x4 caret, traced rather than masked: `--vgui-glyph-caret-down` and the
+ * shared glyph module the doc points at do not exist in `src`. */
+.vgui-select__button::before {
+  content: '';
+  flex: none;
+  inline-size: 7px;
+  block-size: 4px;
+  background-color: var(--vgui-text);
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+}
+
+/* Closed with the field untouched: identical to closed in every value, so
+ * there is deliberately no hover rule on the trigger. The button half is its
+ * own control and takes the usual raised-control hover. */
+.vgui-select__button:hover {
+  background-color: var(--vgui-surface-light);
+}
+
+/* --- Disabled ------------------------------------------------------------ */
+
+.vgui-select--disabled .vgui-select__trigger,
+.vgui-select--disabled .vgui-select__field {
+  cursor: not-allowed;
+}
+
+.vgui-select--disabled .vgui-select__value,
+.vgui-select--disabled .vgui-select__input {
+  color: var(--vgui-text-disabled);
+  text-shadow: 1px 1px 0 var(--vgui-text-disabled-shadow);
+}
+
+.vgui-select--disabled .vgui-select__button,
+.vgui-select--disabled .vgui-select__button:hover {
+  background-color: var(--vgui-surface);
+}
+
+.vgui-select--disabled .vgui-select__button::before {
+  background-color: var(--vgui-text-disabled);
+}
+
+/* --- The popup (a Menu) -------------------------------------------------- */
+
+.vgui-select__list {
+  position: absolute;
+  z-index: 100;
+  inset-inline: 0;
+  inset-block-start: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  max-block-size: var(--vgui-select-list-max-height);
+  overflow-y: auto;
+  background-color: var(--vgui-surface-dark);
+  border: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
+  /* VGUI let the popup paint straight over its siblings; a drop shadow is the
+   * only way to lift it off the page in the DOM. Bevel dark instead of the
+   * recipe's `rgb(0 0 0 / 0.35)`, which is a colour literal. */
+  box-shadow: 2px 2px 0 var(--vgui-bevel-dark);
+}
+
+.vgui-select__option {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-block-size: var(--vgui-select-option-height);
+  padding: 0 var(--vgui-field-inset);
+  padding-inline-start: var(--vgui-select-check-width);
+  color: var(--vgui-text);
+  cursor: default;
+}
+
+/* The selected row's non-colour cue: a checkmark, as later Steam builds drew.
+ * `content: ''` contributes nothing to the accessible name. */
+.vgui-select__option::before {
+  content: '';
+  position: absolute;
+  inset-inline-start: var(--vgui-field-inset);
+  inset-block-start: 50%;
+  inline-size: 7px;
+  block-size: 7px;
+  translate: 0 -50%;
+  background-color: currentColor;
+  clip-path: polygon(
+    0 45%,
+    35% 100%,
+    100% 10%,
+    80% 0,
+    35% 68%,
+    18% 45%
+  );
+  opacity: 0;
+}
+
+/* #232421 on #91863C is 4.22:1; the port's white is 3.70:1 and fails.
+ * `--vgui-selection-text` is exactly #232421. */
+.vgui-select__option[aria-selected='true'] {
+  background-color: var(--vgui-accent-dark);
+  color: var(--vgui-selection-text);
+}
+
+.vgui-select__option[aria-selected='true']::before {
+  opacity: 1;
+}
+
+/* The row the keyboard is on, painted exactly like `Menu`'s hovered row. */
+.vgui-select__option[data-active='true'] {
+  background-color: var(--vgui-accent-dark);
+  color: var(--vgui-selection-text);
+}
+
+.vgui-select__option[aria-disabled='true'] {
+  color: var(--vgui-text-disabled);
+  text-shadow: 1px 1px 0 var(--vgui-text-disabled-shadow);
+}
+
+.vgui-select__option[aria-disabled='true']::before {
+  color: var(--vgui-text-disabled);
+}
+
+/* --- Clay ---------------------------------------------------------------- */
+
+/* `--clay` is a hook rather than a repaint, matching `TextInput`: the field
+ * stays black inside a property sheet and only the chrome turns grey. */
+.vgui-select--clay .vgui-select__button {
+  background-color: var(--vgui-clay-button);
+}
+
+.vgui-select--clay .vgui-select__button:hover {
+  background-color: var(--vgui-clay-light);
+}
+
+.vgui-select--clay .vgui-select__button::before {
+  background-color: var(--vgui-clay-glyph);
+}
+
+.vgui-select--clay .vgui-select__trigger:disabled .vgui-select__value {
+  color: var(--vgui-clay-glyph-dim);
+  text-shadow: none;
+}

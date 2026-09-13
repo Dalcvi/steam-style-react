@@ -1,0 +1,137 @@
+/*
+ * Dialog — the VGUI `MessageBox` / modal frame.
+ *
+ * The dialog is a `Window` with modal semantics, so the frame's look (bevel,
+ * title bar, clay controls) comes from Window.css. Everything here is the part
+ * a message box adds: the dimming scrim, the four MessageBox shapes and the
+ * button row.
+ *
+ * `tokens.css` has no scrim, z-index or dialog-sizing tokens, so those values
+ * are declared as component-local custom properties on the two root classes.
+ * They are part of this component's public styling surface: set them on
+ * `.vgui-dialog-overlay` / `.vgui-dialog` to retheme without touching a token.
+ */
+
+.vgui-dialog-overlay {
+  --vgui-dialog-scrim: rgb(0 0 0 / 0.5);
+  --vgui-dialog-z-index: 900;
+
+  position: fixed;
+  inset: 0;
+  /*
+   * The scrim is decoration: it takes no focus, and centring the frame keeps
+   * the only way to hit it a click outside the frame.
+   */
+  display: grid;
+  place-items: center;
+  outline: none;
+  background-color: var(--vgui-dialog-scrim);
+  z-index: var(--vgui-dialog-z-index);
+}
+
+/*
+ * `.vgui-dialog` lands on the same element as Window's own `.vgui-window`, so
+ * the two selectors are written as one compound selector: the dialog owns the
+ * layout (a capped-height column) no matter which stylesheet a bundler emits
+ * first.
+ */
+.vgui-window.vgui-dialog {
+  --vgui-dialog-min-width: 320px;
+  --vgui-dialog-max-width: min(90vw, 640px);
+  --vgui-dialog-max-height: 90vh;
+  --vgui-dialog-footer-gap: 8px;
+  --vgui-dialog-footer-padding: 12px;
+
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  min-width: var(--vgui-dialog-min-width);
+  max-width: var(--vgui-dialog-max-width);
+  max-height: var(--vgui-dialog-max-height);
+}
+
+/* The frame is a focus sink, not a stop: the trap below tabulates its children. */
+.vgui-dialog:focus {
+  outline: none;
+}
+
+.vgui-dialog__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+}
+
+.vgui-dialog--invalid .vgui-dialog__body {
+  color: var(--vgui-danger);
+}
+
+.vgui-dialog__footer {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--vgui-dialog-footer-gap);
+  padding-top: var(--vgui-dialog-footer-padding);
+  border-top: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
+  box-shadow: inset 0 var(--vgui-bevel-width) 0 var(--vgui-bevel-light);
+}
+
+/* Valve's message boxes are a row of identical plates, not width-to-content. */
+.vgui-dialog__footer .vgui-button {
+  min-width: var(--vgui-dialog-button-width);
+  min-height: var(--vgui-dialog-button-height);
+}
+
+/*
+ * Destructive dialogs mark the last action as the danger action. Only the label
+ * is recoloured: the plate's bevel belongs to Button, and a `--vgui-danger`
+ * border would flatten it. Consumers wanting the full treatment also pass
+ * `.vgui-button--danger` through `actions`.
+ */
+.vgui-dialog--destructive .vgui-dialog__footer .vgui-button:last-child {
+  color: var(--vgui-danger);
+}
+
+/*
+ * While an action is in flight the row is inert but still visible, so the user
+ * can see which choice they already made.
+ */
+.vgui-dialog--busy .vgui-dialog__footer > * {
+  pointer-events: none;
+}
+
+.vgui-dialog__spinner {
+  flex: 0 0 auto;
+  /* Sized in `em` off a token so no new pixel metric is introduced. */
+  font-size: var(--vgui-font-size-small);
+  width: 1em;
+  height: 1em;
+  border: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
+  border-top-color: var(--vgui-clay-glyph);
+  border-radius: 50%;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .vgui-dialog__spinner {
+    animation: vgui-dialog-spin 0.9s linear infinite;
+  }
+}
+
+@keyframes vgui-dialog-spin {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+.vgui-dialog .vgui-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}

@@ -1,0 +1,127 @@
+/*
+ * Green Steam link / text button (`URLLabel`, `TextButton`).
+ * See docs/components/Link.md.
+ *
+ * Three things are load-bearing:
+ *
+ *   1. The underline is permanent. It is the whole affordance, and it is what
+ *      satisfies WCAG 1.4.1 — colour alone never distinguishes a link here.
+ *      `text-decoration` and not `border-bottom`, so it follows the baseline,
+ *      survives wrapping and is what forced-colors mode understands.
+ *   2. There is no `:visited` state in VGUI, and a browser's default purple
+ *      would break the period look (and fail contrast), so it is neutralised.
+ *   3. `--button` is deliberately NOT underlined, at rest or on hover. The
+ *      decoration is what encodes "this is an action, not a destination".
+ */
+
+.vgui-link {
+  box-sizing: border-box;
+  font: inherit;
+  color: var(--vgui-text);
+  text-decoration: underline;
+  text-underline-offset: 1px;
+  cursor: pointer;
+}
+
+/* Declared before `:hover`/`:active` so a visited link still brightens. */
+.vgui-link:visited {
+  color: var(--vgui-text);
+}
+
+.vgui-link:hover {
+  color: var(--vgui-text-strong);
+}
+
+/* The pressed colour is the theme's single bright yellow. */
+.vgui-link:active {
+  color: var(--vgui-text-hover);
+}
+
+/*
+ * Valve's dotted ring is the documented fallback; the accessible ring is the
+ * default (docs/foundations.md §4). `.vgui-crisp` opts back into the literal
+ * one along with bitmap text rendering.
+ */
+.vgui-link:focus-visible {
+  outline: var(--vgui-focus-ring);
+  outline-offset: var(--vgui-focus-ring-offset);
+}
+
+.vgui-crisp .vgui-link:focus-visible {
+  outline: var(--vgui-focus-ring-valve);
+  outline-offset: var(--vgui-focus-ring-valve-offset);
+}
+
+/*
+ * `--quiet` is the literal `Label`/`LinkText` value (4.06:1 on the green
+ * surface), so it is only ever legitimate on a link that is redundant — never
+ * on the only route to content.
+ */
+.vgui-link--quiet,
+.vgui-link--quiet:visited {
+  color: var(--vgui-link-quiet, var(--vgui-text-muted));
+}
+
+.vgui-link--quiet:hover {
+  color: var(--vgui-text-strong);
+}
+
+/* TextButton: performs an action, so no underline in any state. */
+.vgui-link--button {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  text-decoration: none;
+}
+
+.vgui-link--button:hover,
+.vgui-link--button:active {
+  text-decoration: none;
+}
+
+.vgui-link--button:hover {
+  color: var(--vgui-text-strong);
+}
+
+.vgui-link--button:active {
+  color: var(--vgui-text-hover);
+}
+
+.vgui-link--external .vgui-link__external {
+  margin-left: 2px;
+}
+
+/* DisabledText1 over DisabledText2 — Valve's sunken disabled treatment. */
+.vgui-link--disabled,
+.vgui-link--disabled:visited,
+.vgui-link[aria-disabled='true'],
+.vgui-link[aria-disabled='true']:visited,
+.vgui-link:disabled {
+  color: var(--vgui-text-disabled);
+  text-shadow: 1px 1px 0 var(--vgui-text-disabled-shadow);
+  cursor: not-allowed;
+}
+
+/* The anchor form is paired with `tabindex="-1"` in the component. */
+.vgui-link[aria-disabled='true'] {
+  pointer-events: none;
+}
+
+/*
+ * Component-scoped copy of the house screen-reader-only helper, so the
+ * "(opens in a new tab)" announcement travels with the component rather than
+ * depending on a global stylesheet.
+ */
+.vgui-link .vgui-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}

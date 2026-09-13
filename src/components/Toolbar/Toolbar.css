@@ -1,0 +1,212 @@
+/*
+ * Green Steam toolbar.
+ * See docs/components/Toolbar.md.
+ *
+ * There is no `ToolBar` block in `steam.styles`, and that absence is the
+ * spec: a VGUI toolbar paints nothing, and its buttons are `bgcolor = none`
+ * with an empty `render_bg {}`. So the container is bare — no strip, no
+ * border, no divider — and a button's state is a **different sprite**, never
+ * a hover tint, a border colour or a transform.
+ *
+ * Three deliberate departures from the corpus, each one documented in the
+ * component doc's accessibility section:
+ *
+ *   1. The hit area is `--vgui-min-target-size` (24px) with the sprite still
+ *      16x16 and centred, because a 16x16 target fails WCAG 2.2 SC 2.5.8.
+ *   2. A focus ring exists at all — no toolbar button block defines one, and a
+ *      chromeless glyph with no ring cannot be used from the keyboard.
+ *   3. The glyph insets (the `-5px` home pull and the 1px forward/reload/stop
+ *      pulls) are kept verbatim from `steam.styles`: they are optical
+ *      corrections for 16x16 art that does not fill its canvas.
+ *
+ * The sprites are CSS `background-image`s, so they are invisible to assistive
+ * technology by construction; the accessible name is the button's
+ * `aria-label`.
+ */
+
+.vgui-toolbar {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: var(--vgui-toolbar-gap, 8px);
+  height: var(--vgui-toolbar-height, 34px);
+  padding: 0 var(--vgui-toolbar-edge-margin, 10px);
+  /* No block in the corpus defines a toolbar background; the token exists so a
+     theme can add a strip without touching every button. */
+  background: var(--vgui-toolbar-bg, transparent);
+  border: 0;
+}
+
+.vgui-toolbar__button {
+  box-sizing: border-box;
+  /* 24px hit area, 16px sprite: padding plus `background-position: center`. */
+  flex: 0 0 var(--vgui-min-target-size, 24px);
+  width: var(--vgui-min-target-size, 24px);
+  height: var(--vgui-min-target-size, 24px);
+  padding: calc((var(--vgui-min-target-size, 24px) - var(--vgui-icon-size, 16px)) / 2);
+  /* `render_bg {}` — draw nothing behind the glyph, ever. */
+  background-color: transparent;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: var(--vgui-icon-size, 16px);
+  border: 0;
+  border-radius: 0;
+  font: inherit;
+  color: inherit;
+  cursor: default;
+  /* No transition: the sprite swaps instantly. */
+}
+
+/* --- Browser chrome glyphs: five glyphs x four sprites, no other states --- */
+
+.vgui-toolbar__button--back {
+  background-image: url(/icons/icon_button_back.png);
+}
+.vgui-toolbar__button--back:hover {
+  background-image: url(/icons/icon_button_back_over.png);
+}
+.vgui-toolbar__button--back:active {
+  background-image: url(/icons/icon_button_back_down.png);
+}
+.vgui-toolbar__button--back:disabled {
+  background-image: url(/icons/icon_button_back_disabled.png);
+}
+
+.vgui-toolbar__button--forward {
+  background-image: url(/icons/icon_button_forward.png);
+}
+.vgui-toolbar__button--forward:hover {
+  background-image: url(/icons/icon_button_forward_over.png);
+}
+.vgui-toolbar__button--forward:active {
+  background-image: url(/icons/icon_button_forward_down.png);
+}
+.vgui-toolbar__button--forward:disabled {
+  background-image: url(/icons/icon_button_forward_disabled.png);
+}
+
+.vgui-toolbar__button--home {
+  background-image: url(/icons/icon_button_home.png);
+}
+.vgui-toolbar__button--home:hover {
+  background-image: url(/icons/icon_button_home_over.png);
+}
+.vgui-toolbar__button--home:active {
+  background-image: url(/icons/icon_button_home_down.png);
+}
+.vgui-toolbar__button--home:disabled {
+  background-image: url(/icons/icon_button_home_disabled.png);
+}
+
+.vgui-toolbar__button--reload {
+  background-image: url(/icons/icon_button_reload.png);
+}
+.vgui-toolbar__button--reload:hover {
+  background-image: url(/icons/icon_button_reload_over.png);
+}
+.vgui-toolbar__button--reload:active {
+  background-image: url(/icons/icon_button_reload_down.png);
+}
+.vgui-toolbar__button--reload:disabled {
+  background-image: url(/icons/icon_button_reload_disabled.png);
+}
+
+.vgui-toolbar__button--stop {
+  background-image: url(/icons/icon_button_stop.png);
+}
+.vgui-toolbar__button--stop:hover {
+  background-image: url(/icons/icon_button_stop_over.png);
+}
+.vgui-toolbar__button--stop:active {
+  background-image: url(/icons/icon_button_stop_down.png);
+}
+.vgui-toolbar__button--stop:disabled {
+  background-image: url(/icons/icon_button_stop_disabled.png);
+}
+
+/* The one bevelled glyph the corpus names (`FullscreenButton`). */
+.vgui-toolbar__button--controller-bpm {
+  background-image: url(/icons/icon_controller_bpm.png);
+}
+.vgui-toolbar__button--controller-bpm:hover {
+  background-image: url(/icons/icon_controller_bpm_over.png);
+}
+.vgui-toolbar__button--controller-bpm:active {
+  background-image: url(/icons/icon_controller_bpm_down.png);
+}
+.vgui-toolbar__button--controller-bpm:disabled {
+  background-image: url(/icons/icon_controller_bpm_disabled.png);
+}
+
+/*
+ * Per-glyph optical corrections, straight from the corpus's hand-tuned insets
+ * ("0 0 0 0", "1 0 -1 0", "-5 0 0 0"). Do not tidy these into one shared
+ * value: four of the five glyphs are 1-5px off-centre without them.
+ */
+.vgui-toolbar__button--forward,
+.vgui-toolbar__button--reload,
+.vgui-toolbar__button--stop {
+  margin-left: 1px;
+  margin-right: -1px;
+}
+
+.vgui-toolbar__button--home {
+  margin-left: -5px;
+}
+
+/* --- Focus: invented here, because no toolbar block defines one --- */
+
+.vgui-toolbar__button:focus-visible {
+  outline: var(--vgui-focus-ring);
+  outline-offset: var(--vgui-focus-ring-offset);
+}
+
+.vgui-crisp .vgui-toolbar__button:focus-visible {
+  outline: var(--vgui-focus-ring-valve);
+  outline-offset: var(--vgui-focus-ring-valve-offset);
+}
+
+/* --- Text buttons: the server browser's 104-128px labelled controls --- */
+
+.vgui-toolbar__button--text {
+  flex: 0 0 auto;
+  width: auto;
+  height: var(--vgui-toolbar-button-size, 24px);
+  padding: 0 8px;
+  background-image: none;
+  white-space: nowrap;
+}
+
+/* --- `--raised`: the `FullscreenButton` bevel --- */
+
+.vgui-toolbar--raised .vgui-toolbar__button {
+  background-color: transparent;
+  border-top: var(--vgui-bevel-width) solid var(--vgui-bevel-light);
+  border-left: var(--vgui-bevel-width) solid var(--vgui-bevel-light);
+  border-right: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
+  border-bottom: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
+}
+
+/* Pressed = the same bevel rotated, never a colour change. */
+.vgui-toolbar--raised .vgui-toolbar__button:active,
+.vgui-toolbar--raised .vgui-toolbar__button[aria-pressed='true'] {
+  border-top-color: var(--vgui-bevel-dark);
+  border-left-color: var(--vgui-bevel-dark);
+  border-right-color: var(--vgui-bevel-light);
+  border-bottom-color: var(--vgui-bevel-light);
+}
+
+/* --- `--footer`: `DialogServerBrowser.res`'s 34px bottom region --- */
+
+.vgui-toolbar--footer {
+  justify-content: flex-end;
+  padding-right: var(--vgui-toolbar-edge-margin, 10px);
+}
+
+.vgui-toolbar--footer .vgui-toolbar__button {
+  flex: 0 0 auto;
+  width: auto;
+  height: var(--vgui-toolbar-button-size, 24px);
+  padding: 0 8px;
+  font-size: var(--vgui-font-size-small);
+}

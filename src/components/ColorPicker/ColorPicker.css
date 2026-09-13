@@ -1,0 +1,331 @@
+/*
+ * ColorPicker — library-original; `docs/components/ColorPicker.md` is explicit
+ * that the control has no corpus evidence, so every value here is either a real
+ * theme token or a metric the doc names itself.
+ */
+
+.vgui-color-picker {
+  /*
+   * Component-local tokens. The doc names all three and none of them belongs in
+   * the theme layer, so they keep their literal default here.
+   */
+  --vgui-color-picker-swatch: 18px;
+  --vgui-color-picker-columns: 12;
+  /* `BorderSelection`, `steamscheme.res:70`; the token layer spells it
+     `--vgui-border-selection`. */
+  --vgui-color-picker-selection: var(--vgui-border-selection);
+
+  position: relative;
+  display: inline-block;
+  font-family: var(--vgui-font);
+  font-size: var(--vgui-font-size);
+  color: var(--vgui-text);
+}
+
+/* The trigger is a ComboBox: recessed field, inset "3 0 0 0", DarkGreenBG. */
+.vgui-color-picker__trigger {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-block-size: var(--vgui-control-height);
+  padding: 0 2px 0 3px;
+  font: inherit;
+  font-size: var(--vgui-font-size);
+  color: var(--vgui-text-strong);
+  background-color: var(--vgui-surface-dark);
+  border-top: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
+  border-left: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
+  border-bottom: var(--vgui-bevel-width) solid var(--vgui-bevel-light);
+  border-right: var(--vgui-bevel-width) solid var(--vgui-bevel-light);
+  cursor: pointer;
+}
+
+/*
+ * Hover does nothing: `steam.styles:722` restates the base `ComboBox` values,
+ * and the doc is emphatic that the restatement is the rule. The focus ring is
+ * the one documented addition.
+ */
+.vgui-color-picker__trigger:focus-visible {
+  outline: var(--vgui-focus-ring);
+  outline-offset: var(--vgui-focus-ring-offset);
+}
+
+.vgui-crisp .vgui-color-picker__trigger:focus-visible {
+  outline: var(--vgui-focus-ring-valve);
+  outline-offset: var(--vgui-focus-ring-valve-offset);
+}
+
+.vgui-color-picker__trigger:disabled {
+  color: var(--vgui-text-disabled);
+  cursor: default;
+}
+
+/* Every surface in this theme has a 1px bevel; a swatch is a surface. */
+.vgui-color-picker__swatch {
+  flex: none;
+  inline-size: var(--vgui-color-picker-swatch);
+  block-size: var(--vgui-color-picker-swatch);
+  background-color: var(--vgui-swatch, transparent);
+  border-top: var(--vgui-bevel-width) solid var(--vgui-bevel-light);
+  border-left: var(--vgui-bevel-width) solid var(--vgui-bevel-light);
+  border-bottom: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
+  border-right: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
+}
+
+/* Checkerboard for alpha < 1. Two flat greys — the theme has no gradients. */
+.vgui-color-picker__swatch[data-alpha='true'],
+.vgui-color-picker__option[data-alpha='true'] {
+  background-image:
+    linear-gradient(45deg, var(--vgui-bevel-light) 25%, transparent 25%),
+    linear-gradient(-45deg, var(--vgui-bevel-light) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, var(--vgui-bevel-light) 75%),
+    linear-gradient(-45deg, transparent 75%, var(--vgui-bevel-light) 75%);
+  background-size: 8px 8px;
+  background-position:
+    0 0,
+    0 4px,
+    4px -4px,
+    -4px 0;
+}
+
+.vgui-color-picker__label {
+  font-family: var(--vgui-font-mono);
+  font-size: var(--vgui-font-size-small);
+  color: var(--vgui-text-strong);
+  white-space: nowrap;
+}
+
+.vgui-color-picker__trigger:disabled .vgui-color-picker__label {
+  color: var(--vgui-text-disabled);
+}
+
+/* The 7x4 staircase arrow from `Scrollbar.md`; the glyph has no token. */
+.vgui-color-picker__arrow {
+  flex: none;
+  inline-size: 7px;
+  block-size: 4px;
+  margin-inline-start: auto;
+  background-color: currentColor;
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+}
+
+/* The panel is a raised surface, like a Menu. */
+.vgui-color-picker__panel {
+  position: absolute;
+  inset-block-start: 100%;
+  inset-inline-start: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: var(--vgui-field-inset);
+  margin-block-start: var(--vgui-bevel-width);
+  padding: var(--vgui-field-inset);
+  background-color: var(--vgui-surface);
+  border-top: var(--vgui-bevel-width) solid var(--vgui-bevel-light);
+  border-left: var(--vgui-bevel-width) solid var(--vgui-bevel-light);
+  border-bottom: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
+  border-right: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
+}
+
+/* `--inline`: same stack, no trigger and no popup. */
+.vgui-color-picker--inline {
+  display: inline-flex;
+  flex-direction: column;
+  gap: var(--vgui-field-inset);
+  padding: var(--vgui-field-inset);
+  background-color: var(--vgui-surface);
+  border-top: var(--vgui-bevel-width) solid var(--vgui-bevel-light);
+  border-left: var(--vgui-bevel-width) solid var(--vgui-bevel-light);
+  border-bottom: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
+  border-right: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
+}
+
+.vgui-color-picker__grid {
+  display: grid;
+  grid-template-columns: repeat(var(--vgui-color-picker-columns), auto);
+  gap: 2px;
+}
+
+.vgui-color-picker__grid:focus-visible {
+  outline: var(--vgui-focus-ring);
+  outline-offset: var(--vgui-focus-ring-offset);
+}
+
+.vgui-crisp .vgui-color-picker__grid:focus-visible {
+  outline: var(--vgui-focus-ring-valve);
+  outline-offset: var(--vgui-focus-ring-valve-offset);
+}
+
+.vgui-color-picker__option {
+  inline-size: var(--vgui-color-picker-swatch);
+  block-size: var(--vgui-color-picker-swatch);
+  background-color: var(--vgui-option-color);
+  border: var(--vgui-bevel-width) solid transparent;
+  cursor: pointer;
+}
+
+/* Swatch hover: `--vgui-surface-light` behind the swatch. */
+.vgui-color-picker__option:hover {
+  border-color: var(--vgui-surface-light);
+}
+
+/* The keyboard highlight: `BorderSelection`, "0 0 0 255". */
+.vgui-color-picker__option[data-active='true'] {
+  border-color: var(--vgui-color-picker-selection);
+}
+
+/*
+ * The committed choice: `MaizeBG` fill (`steam.styles:703`). The fill is a
+ * shape as well as a colour, which is what keeps the selection from depending
+ * on hue alone.
+ */
+.vgui-color-picker__option[aria-selected='true'] {
+  background-color: var(--vgui-accent-dark);
+}
+
+/* The one field in the component; the doc's token table names DarkGreenBG. */
+.vgui-color-picker__hex {
+  box-sizing: border-box;
+  inline-size: 100%;
+  min-block-size: var(--vgui-control-height);
+  padding: 0 var(--vgui-field-inset);
+  font-family: var(--vgui-font-mono);
+  font-size: var(--vgui-font-size-small);
+  color: var(--vgui-text-strong);
+  background-color: var(--vgui-surface-dark);
+  border-top: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
+  border-left: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
+  border-bottom: var(--vgui-bevel-width) solid var(--vgui-bevel-light);
+  border-right: var(--vgui-bevel-width) solid var(--vgui-bevel-light);
+}
+
+.vgui-color-picker__hex:focus-visible {
+  outline: var(--vgui-focus-ring);
+  outline-offset: var(--vgui-focus-ring-offset);
+}
+
+.vgui-crisp .vgui-color-picker__hex:focus-visible {
+  outline: var(--vgui-focus-ring-valve);
+  outline-offset: var(--vgui-focus-ring-valve-offset);
+}
+
+/* Invalid hex: the label goes red and no colour is applied. */
+.vgui-color-picker__hex[aria-invalid='true'] {
+  color: var(--vgui-danger);
+}
+
+/*
+ * The alpha/hue/saturation/brightness sliders reuse the Slider groove and
+ * thumb, so the whole family stays in one visual language.
+ */
+.vgui-color-picker__slider {
+  inline-size: 100%;
+  min-block-size: var(--vgui-min-target-size);
+  background: none;
+  appearance: none;
+  color: var(--vgui-bevel-light-strong);
+  cursor: pointer;
+}
+
+.vgui-color-picker__slider:focus {
+  outline: none;
+}
+
+.vgui-color-picker__slider:focus-visible {
+  outline: var(--vgui-focus-ring);
+  outline-offset: 2px;
+}
+
+.vgui-crisp .vgui-color-picker__slider:focus-visible {
+  outline: var(--vgui-focus-ring-valve);
+  outline-offset: var(--vgui-focus-ring-valve-offset);
+}
+
+.vgui-color-picker__slider::-webkit-slider-runnable-track {
+  block-size: var(--vgui-slider-track-height);
+  background-color: var(--vgui-surface-dark);
+  border-top: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
+  border-left: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
+  border-bottom: var(--vgui-bevel-width) solid var(--vgui-bevel-light);
+  border-right: var(--vgui-bevel-width) solid var(--vgui-bevel-light);
+}
+
+.vgui-color-picker__slider::-moz-range-track,
+.vgui-color-picker__slider::-moz-range-progress {
+  block-size: var(--vgui-slider-track-height);
+  background-color: var(--vgui-surface-dark);
+  border-top: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
+  border-left: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
+  border-bottom: var(--vgui-bevel-width) solid var(--vgui-bevel-light);
+  border-right: var(--vgui-bevel-width) solid var(--vgui-bevel-light);
+}
+
+.vgui-color-picker__slider::-webkit-slider-thumb {
+  position: relative;
+  top: calc((var(--vgui-slider-thumb-height) - var(--vgui-slider-track-height)) / -2);
+  box-sizing: border-box;
+  inline-size: var(--vgui-slider-thumb-width);
+  block-size: var(--vgui-slider-thumb-height);
+  border-radius: 0;
+  background-color: var(--vgui-surface);
+  border-top: var(--vgui-bevel-width) solid var(--vgui-bevel-light);
+  border-left: var(--vgui-bevel-width) solid var(--vgui-bevel-light);
+  border-bottom: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
+  border-right: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
+  appearance: none;
+}
+
+.vgui-color-picker__slider::-moz-range-thumb {
+  box-sizing: border-box;
+  inline-size: var(--vgui-slider-thumb-width);
+  block-size: var(--vgui-slider-thumb-height);
+  border-radius: 0;
+  background-color: var(--vgui-surface);
+  border-top: var(--vgui-bevel-width) solid var(--vgui-bevel-light);
+  border-left: var(--vgui-bevel-width) solid var(--vgui-bevel-light);
+  border-bottom: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
+  border-right: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
+}
+
+.vgui-color-picker__slider:disabled {
+  cursor: default;
+}
+
+.vgui-color-picker__slider:disabled::-webkit-slider-thumb,
+.vgui-color-picker__slider:disabled::-moz-range-thumb {
+  background-color: var(--vgui-surface-dark);
+  border-color: var(--vgui-surface-dark);
+}
+
+/* The alpha slider shows the transparency it is editing. */
+.vgui-color-picker__alpha::-webkit-slider-runnable-track {
+  background-image:
+    linear-gradient(45deg, var(--vgui-bevel-light) 25%, transparent 25%),
+    linear-gradient(-45deg, var(--vgui-bevel-light) 25%, transparent 25%);
+  background-size: 8px 8px;
+}
+
+/* The `--continuous` stack. Data visualisation, NOT period-accurate. */
+.vgui-color-picker__continuous {
+  display: contents;
+}
+
+.vgui-color-picker--continuous .vgui-color-picker__sv {
+  inline-size: 180px;
+  block-size: 120px;
+  background-color: var(--vgui-hue);
+  background-image:
+    linear-gradient(to top, var(--vgui-border-selection), transparent),
+    linear-gradient(to right, var(--vgui-text-strong), transparent);
+  border-top: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
+  border-left: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
+  border-bottom: var(--vgui-bevel-width) solid var(--vgui-bevel-light);
+  border-right: var(--vgui-bevel-width) solid var(--vgui-bevel-light);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vgui-color-picker__panel {
+    transition: none;
+  }
+}

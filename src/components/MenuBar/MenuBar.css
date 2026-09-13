@@ -1,0 +1,94 @@
+/*
+ * MenuBar — the top-level word strip and the dropdowns it opens.
+ * Spec: docs/components/MenuBar.md.
+ *
+ * `MenuBar {}` and `"Page MenuBar" {}` are empty blocks in steam.styles, so the
+ * strip deliberately carries no fill, no border and no height of its own: it
+ * sits directly on the window body.
+ */
+
+.vgui-menubar,
+.vgui-menu-bar {
+  box-sizing: border-box;
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  /* Nothing to reproduce: the strip has no chrome. */
+  background: none;
+  border: 0;
+  color: var(--vgui-text-strong);
+  font-family: var(--vgui-font);
+  font-size: var(--vgui-font-size);
+}
+
+.vgui-menubar--vertical {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.vgui-menubar__group {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+}
+
+.vgui-menubar__item {
+  box-sizing: border-box;
+  /* padding-right = -2 in VGUI has no CSS equivalent, so the words are simply
+     packed tightly. The hit area is not shrunk by a negative margin. */
+  padding: 2px 4px 2px 2px;
+  border: 0;
+  background: transparent;
+  /* Departure: `TitleDimText` (#889180) is 2.31:1 on a GreenBG panel, so the
+     documented "focused window" colour is the resting colour and the ladder is
+     white -> maize. Recorded in the component's Storybook notes. */
+  color: var(--vgui-text-strong);
+  font: inherit;
+  font-size: var(--vgui-font-size);
+  /* Load-bearing: the hit area is the full height of the strip. */
+  line-height: var(--vgui-menubar-height, 24px);
+  cursor: default;
+}
+
+/* "Focused, hover" in the states table is white on transparent — the original
+   never fills — so hover only has to hold the resting colour. */
+.vgui-menubar__item:hover {
+  color: var(--vgui-text-strong);
+}
+
+/* `Over`: maize text. steam.styles gives the open item no fill at all; the
+   library adds the CSS port's `--vgui-surface-light` so the state reads. */
+.vgui-menubar__item[aria-expanded='true'] {
+  color: var(--vgui-heading);
+  background-color: var(--vgui-surface-light);
+}
+
+.vgui-menubar__item:focus-visible {
+  outline: var(--vgui-focus-ring);
+  outline-offset: var(--vgui-focus-ring-offset);
+}
+
+.vgui-menubar__item:disabled {
+  color: var(--vgui-text-disabled);
+  text-shadow: 1px 1px 0 var(--vgui-text-disabled-shadow);
+}
+
+.vgui-menubar--vertical .vgui-menubar__item {
+  padding: 2px 8px 2px 4px;
+  text-align: left;
+}
+
+/* The dropdown hangs off its word. */
+.vgui-menubar__menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 1;
+}
+
+.vgui-crisp .vgui-menubar__item:focus-visible {
+  outline: var(--vgui-focus-ring-valve);
+  outline-offset: var(--vgui-focus-ring-valve-offset);
+}

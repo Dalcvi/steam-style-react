@@ -1,0 +1,133 @@
+/*
+ * Green Steam text field — VGUI `TextEntry` (docs/components/TextInput.md).
+ *
+ * Two things define the look and are easy to "improve" away:
+ *
+ *   1. The interior is genuinely black rather than `--vgui-surface`. It is the
+ *      darkest surface in the theme, so the value text on it reaches 15.31:1 —
+ *      the best contrast pairing in the library.
+ *   2. The inset is `4 0 4 0`: horizontal padding only, which is what makes a
+ *      VGUI field feel tight.
+ *
+ * The black interior is read through `--vgui-field-bg`, the token
+ * docs/components/TextInput.md asks the token layer to add. No literal fallback
+ * is declared here: components in this library never contain a colour value.
+ */
+
+.vgui-text-input {
+  /* Component-local metrics. The palette is never declared locally. */
+  --vgui-text-input-height: 19px;
+  --vgui-text-input-icon-inset: 20px;
+  --vgui-text-input-suffix-inset: 28px;
+
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  font: inherit;
+}
+
+.vgui-text-input__field {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  min-height: var(--vgui-text-input-height);
+  padding: 0 var(--vgui-field-inset);
+  font: inherit;
+  color: var(--vgui-text);
+  background-color: var(--vgui-field-bg);
+  /* The UA draws a rounded, inset native field; the bevel replaces it. */
+  appearance: none;
+  border-top: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
+  border-left: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
+  border-bottom: var(--vgui-bevel-width) solid var(--vgui-bevel-light);
+  border-right: var(--vgui-bevel-width) solid var(--vgui-bevel-light);
+  /* Explicit because `appearance: none` still leaves Safari rounding corners. */
+  border-radius: 0;
+  caret-color: var(--vgui-text);
+}
+
+.vgui-text-input__field::placeholder {
+  color: var(--vgui-text-dim);
+  /* Firefox dims placeholders to 0.54 by default. */
+  opacity: 1;
+}
+
+/*
+ * Valve's ring for a field is `1px dotted black`, drawn over an interior where
+ * it is invisible rather than merely low-contrast. The accent ring is the
+ * default; the faithful one stays reachable through `.vgui-crisp`.
+ */
+.vgui-text-input__field:focus-visible {
+  outline: var(--vgui-focus-ring);
+  outline-offset: var(--vgui-focus-ring-offset);
+}
+
+.vgui-crisp .vgui-text-input__field:focus-visible {
+  outline: var(--vgui-focus-ring-valve);
+  outline-offset: var(--vgui-focus-ring-valve-offset);
+}
+
+/* `#232421` on the accent is 4.39:1; the theme's body colour is only 2.59:1. */
+.vgui-text-input__field::selection {
+  background-color: var(--vgui-selection-bg);
+  color: var(--vgui-selection-text);
+}
+
+/* Read-only stays legible and selectable; disabled is not submitted at all. */
+.vgui-text-input__field:read-only {
+  color: var(--vgui-text-muted);
+}
+
+.vgui-text-input__field:disabled {
+  color: var(--vgui-text-disabled);
+  text-shadow: 1px 1px 0 var(--vgui-text-disabled-shadow);
+  cursor: not-allowed;
+}
+
+.vgui-text-input--invalid .vgui-text-input__field {
+  border-top-color: var(--vgui-danger);
+  border-left-color: var(--vgui-danger);
+}
+
+.vgui-text-input--large .vgui-text-input__field {
+  min-height: var(--vgui-control-height);
+}
+
+.vgui-text-input__adornment {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  color: var(--vgui-text-dim);
+  pointer-events: none;
+}
+
+.vgui-text-input__adornment--start {
+  left: var(--vgui-field-inset);
+}
+
+.vgui-text-input__adornment--end {
+  right: var(--vgui-field-inset);
+}
+
+.vgui-text-input--with-icon .vgui-text-input__field {
+  padding-left: var(--vgui-text-input-icon-inset);
+}
+
+.vgui-text-input--with-suffix .vgui-text-input__field {
+  padding-right: var(--vgui-text-input-suffix-inset);
+}
+
+/*
+ * `--clay` is a hook rather than a repaint: the field itself stays black inside
+ * a property sheet and only the chrome around it turns grey, so the class
+ * declares nothing beyond the adornment glyph colour.
+ */
+.vgui-text-input--clay .vgui-text-input__adornment {
+  color: var(--vgui-clay-glyph);
+}
+
+.vgui-text-input--clay .vgui-text-input__field:disabled {
+  color: var(--vgui-clay-glyph-dim);
+  text-shadow: none;
+}

@@ -1,0 +1,184 @@
+/*
+ * Green Steam icon button.
+ *
+ * A square face whose entire content is a glyph. Three things differ from
+ * `.vgui-button` (docs/components/IconButton.md):
+ *
+ *   1. The face is square and driven by the sprite's pixel size, not a label.
+ *   2. The glyph recolours per state through `currentColor` over a
+ *      `mask-image`, so one URI covers normal/hover/active/disabled and every
+ *      theme variant. There are no per-state assets.
+ *   3. `:active` inverts the bevel *and* drops the glyph 1px — the only place
+ *      in the theme where content moves on press.
+ *
+ * Two deviations required by WCAG: the accessible focus ring replaces Valve's
+ * dashed `BorderDark` ring (1.87:1), and every face keeps an invisible 24×24
+ * hit area because a 15–20px square is below 2.5.8's minimum.
+ */
+
+.vgui-icon-button {
+  box-sizing: border-box;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--vgui-frame-control-size);
+  block-size: var(--vgui-frame-control-size);
+  padding: 0;
+  font: inherit;
+  color: var(--vgui-text);
+  background-color: var(--vgui-surface);
+  border-top: var(--vgui-bevel-width) solid var(--vgui-bevel-light);
+  border-left: var(--vgui-bevel-width) solid var(--vgui-bevel-light);
+  border-bottom: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
+  border-right: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
+  cursor: pointer;
+}
+
+/*
+ * The painted face is 15–20px; the target is not. A centred 24×24 overlay
+ * travels with the button, so the glyph stays sprite-sized while the pointer
+ * target meets WCAG 2.5.8.
+ */
+.vgui-icon-button::before {
+  content: '';
+  position: absolute;
+  inset: 50% auto auto 50%;
+  inline-size: var(--vgui-min-target-size);
+  block-size: var(--vgui-min-target-size);
+  transform: translate(-50%, -50%);
+}
+
+/* The `_over` sprites are brighter glyphs, not a different face: the bevel
+ * stays raised and only the colour changes. */
+.vgui-icon-button:hover,
+.vgui-icon-button--toggled,
+.vgui-icon-button[aria-pressed='true'] {
+  color: var(--vgui-text-strong);
+}
+
+/* Pressed and latched both invert the bevel — and `:active` does so even when
+ * already latched, so the press is never invisible. */
+.vgui-icon-button:active,
+.vgui-icon-button--toggled,
+.vgui-icon-button[aria-pressed='true'] {
+  border-top-color: var(--vgui-bevel-dark);
+  border-left-color: var(--vgui-bevel-dark);
+  border-bottom-color: var(--vgui-bevel-light);
+  border-right-color: var(--vgui-bevel-light);
+}
+
+/* `icon_button_*_down` draws the glyph 1px lower. The movement is decorative
+ * and mirrors the bevel inversion, so it is a state change, not motion. */
+.vgui-icon-button:active .vgui-icon-button__glyph {
+  transform: translateY(1px);
+}
+
+.vgui-icon-button:disabled {
+  color: var(--vgui-text-disabled);
+  cursor: default;
+}
+
+/* A disabled control is not a target, so it drops the expanded hit area rather
+ * than overlapping its still-enabled neighbours. */
+.vgui-icon-button:disabled::before {
+  content: none;
+}
+
+.vgui-icon-button:focus-visible {
+  outline: var(--vgui-focus-ring);
+  outline-offset: var(--vgui-focus-ring-offset);
+}
+
+/* Valve's literal ring, reachable only through the pixel-perfect opt-in. */
+.vgui-crisp .vgui-icon-button:focus-visible {
+  outline: var(--vgui-focus-ring-valve);
+  outline-offset: var(--vgui-focus-ring-valve-offset);
+}
+
+.vgui-icon-button--small {
+  inline-size: var(--vgui-checkbox-size);
+  block-size: var(--vgui-checkbox-size);
+}
+
+.vgui-icon-button--gutter {
+  inline-size: var(--vgui-scrollbar-size);
+  block-size: var(--vgui-scrollbar-size);
+}
+
+.vgui-icon-button--large {
+  inline-size: var(--vgui-control-height);
+  block-size: var(--vgui-control-height);
+}
+
+.vgui-icon-button--clay {
+  background-color: var(--vgui-clay-button);
+}
+
+/*
+ * Frameless: no chrome until hovered, for tree expanders and the `?` hint.
+ * Declared last so it also wins over `--clay` and the `:active` inversion sets
+ * above keep their bevel once shown.
+ */
+.vgui-icon-button--frameless {
+  background-color: transparent;
+  border-color: transparent;
+}
+
+.vgui-icon-button--frameless:hover {
+  border-top-color: var(--vgui-bevel-light);
+  border-left-color: var(--vgui-bevel-light);
+  border-bottom-color: var(--vgui-bevel-dark);
+  border-right-color: var(--vgui-bevel-dark);
+}
+
+.vgui-icon-button--frameless:active,
+.vgui-icon-button--frameless.vgui-icon-button--toggled,
+.vgui-icon-button--frameless[aria-pressed='true'] {
+  border-top-color: var(--vgui-bevel-dark);
+  border-left-color: var(--vgui-bevel-dark);
+  border-bottom-color: var(--vgui-bevel-light);
+  border-right-color: var(--vgui-bevel-light);
+}
+
+/* `icon_button_*_disabled` has no bevel at all on this variant. */
+.vgui-icon-button--frameless:disabled {
+  border-color: transparent;
+}
+
+/*
+ * The glyph box is 60% of the face — 12×12 inside the default 20×20, which is
+ * the sprite-derived metric in the doc. The mask is one image scaled to the
+ * box, tinted by `currentColor`.
+ */
+.vgui-icon-button__glyph {
+  display: block;
+  flex: 0 0 auto;
+  inline-size: 60%;
+  block-size: 60%;
+  background-color: currentColor;
+  -webkit-mask-image: var(--vgui-icon-button-glyph, none);
+  mask-image: var(--vgui-icon-button-glyph, none);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+}
+
+/*
+ * A caller-supplied node paints itself, so it must not also get the solid
+ * `currentColor` box the mask needs. `currentColor` is still inherited from the
+ * button, so `fill="currentColor"` in the node tracks every state.
+ */
+.vgui-icon-button__glyph--node {
+  background-color: transparent;
+}
+
+.vgui-icon-button__glyph--node > svg {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+  fill: currentColor;
+}

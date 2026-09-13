@@ -1,0 +1,152 @@
+/*
+ * Green Steam spin box — a composition, not a corpus control
+ * (docs/components/SpinBox.md).
+ *
+ * The field is a `TextEntry` and must match TextInput's recipe exactly, or the
+ * two will not sit together in a form; the stepper column is the `ComboBox`
+ * arrow-button grammar stacked twice. The glyphs are drawn procedurally from
+ * the 7x4 staircase of Scrollbar.md, because `icon_up_default` does not exist
+ * in the corpus at all.
+ *
+ * The metric tokens this component needs are not in tokens.css yet, so each
+ * keeps its `var()` fallback — a theme that adds them can still override.
+ */
+
+.vgui-spin-box {
+  display: inline-flex;
+  align-items: stretch;
+  min-block-size: var(--vgui-spin-box-height, 25px);
+  min-inline-size: 0;
+  font: inherit;
+}
+
+/* The field: TextEntry, steam.styles:2395-2414. Recessed, DarkGreenBG. */
+.vgui-spin-box__input {
+  box-sizing: border-box;
+  inline-size: 100%;
+  min-inline-size: 0;
+  padding: 0 var(--vgui-spin-box-inset, 4px);
+  font: inherit;
+  font-size: var(--vgui-font-size);
+  line-height: 1;
+  color: var(--vgui-text-strong);
+  background-color: var(--vgui-surface-dark);
+  appearance: none;
+  border-top: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
+  border-left: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
+  border-bottom: var(--vgui-bevel-width) solid var(--vgui-bevel-light);
+  border-right: var(--vgui-bevel-width) solid var(--vgui-bevel-light);
+  border-radius: 0;
+  /* A spin box is left-aligned numeric; right-align only for money. */
+  text-align: left;
+}
+
+/*
+ * `TextEntry:focus` restates the same colours — only the border treatment
+ * changes. The ring is the accessible default; `.vgui-crisp` gets Valve's.
+ */
+.vgui-spin-box__input:focus {
+  outline: none;
+}
+
+.vgui-spin-box__input:focus-visible {
+  outline: var(--vgui-focus-ring);
+  outline-offset: var(--vgui-focus-ring-offset);
+}
+
+.vgui-crisp .vgui-spin-box__input:focus-visible {
+  outline: var(--vgui-focus-ring-valve);
+  outline-offset: var(--vgui-focus-ring-valve-offset);
+}
+
+/* `#232421` on the selection accent reaches 4.22:1; the body colour does not. */
+.vgui-spin-box__input::selection {
+  background-color: var(--vgui-selection-bg);
+  color: var(--vgui-selection-text);
+}
+
+.vgui-spin-box__input[aria-invalid='true'] {
+  border-top-color: var(--vgui-danger);
+  border-left-color: var(--vgui-danger);
+}
+
+.vgui-spin-box__input:disabled {
+  color: var(--vgui-text-disabled);
+  text-shadow: 1px 1px 0 var(--vgui-text-disabled-shadow);
+  cursor: not-allowed;
+}
+
+/* The stepper plate: one beveled column, ComboBox grammar. */
+.vgui-spin-box__steppers {
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+  flex: none;
+  inline-size: var(--vgui-spin-box-step-width, 17px);
+  background-color: var(--vgui-surface);
+  border-top: var(--vgui-bevel-width) solid var(--vgui-bevel-light);
+  border-left: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
+  border-bottom: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
+  border-right: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
+}
+
+.vgui-spin-box__step {
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--vgui-text-muted);
+  cursor: pointer;
+}
+
+.vgui-spin-box__step:hover:not(:disabled) {
+  background-color: var(--vgui-surface-light);
+}
+
+/* `Button:active` inverts the bevel — reuse that, not a translate. */
+.vgui-spin-box__step:active:not(:disabled) {
+  box-shadow:
+    inset var(--vgui-bevel-width) var(--vgui-bevel-width) 0 var(--vgui-bevel-dark),
+    inset calc(-1 * var(--vgui-bevel-width)) calc(-1 * var(--vgui-bevel-width)) 0 var(--vgui-bevel-light);
+}
+
+.vgui-spin-box__step:disabled {
+  color: var(--vgui-text-dim);
+  cursor: default;
+}
+
+.vgui-spin-box__step:focus-visible {
+  outline: var(--vgui-focus-ring);
+  outline-offset: -2px;
+}
+
+.vgui-crisp .vgui-spin-box__step:focus-visible {
+  outline: var(--vgui-focus-ring-valve);
+  outline-offset: var(--vgui-focus-ring-valve-offset);
+}
+
+/* The glyph: the 7x4 staircase from Scrollbar.md, mirrored for "up". */
+.vgui-spin-box__glyph {
+  inline-size: 7px;
+  block-size: 4px;
+  background-color: currentColor;
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+}
+
+.vgui-spin-box__step--up .vgui-spin-box__glyph {
+  clip-path: polygon(50% 100%, 100% 0, 0 0);
+}
+
+.vgui-spin-box--small {
+  min-block-size: 18px;
+}
+
+.vgui-spin-box--small .vgui-spin-box__input {
+  font-size: var(--vgui-font-size-small);
+}
+
+.vgui-spin-box--horizontal .vgui-spin-box__steppers {
+  grid-template-rows: none;
+  grid-template-columns: 1fr 1fr;
+  inline-size: calc(2 * var(--vgui-spin-box-step-width, 17px));
+}
