@@ -59,6 +59,7 @@ pnpm storybook          # Storybook on http://localhost:6006
 pnpm run build          # library -> dist/
 pnpm run build-storybook  # static Storybook -> storybook-static/
 pnpm run typecheck      # tsc --noEmit
+pnpm changeset          # describe a change for the next release
 ```
 
 ### How the build works
@@ -101,7 +102,30 @@ own `index.ts` **and** from `src/index.ts`, and add a story next to it.
 | --- | --- | --- |
 | `.github/workflows/ci.yml` | push to `main`, PRs | Typechecks, builds the library and Storybook, uploads `dist` as an artifact. |
 | `.github/workflows/pages.yml` | push to `main` | Builds Storybook and deploys it to GitHub Pages. |
-| `.github/workflows/release.yml` | tag `v*.*.*` | Publishes the package to npm with provenance. |
+| `.github/workflows/release.yml` | push to `main` | Opens/updates the *“chore: version packages”* PR, then publishes to npm **with provenance** and creates the GitHub release once that PR is merged. |
+
+### Releasing
+
+Releases are managed by [Changesets](https://changesets.dev) — the version in
+`package.json` is only ever changed by CI.
+
+1. Add a changeset to your PR describing the change and the bump it needs:
+
+   ```bash
+   pnpm changeset
+   ```
+
+   This writes a Markdown file into `.changeset/`; commit it with your code.
+2. When that PR lands on `main`, the release workflow opens (or updates) the
+   **“chore: version packages”** pull request, which applies the bumps,
+   regenerates `CHANGELOG.md` and deletes the consumed changeset files.
+3. Merge that pull request. The next release run finds no pending changesets, so
+   it publishes to npm, pushes the `@dalcvi/steam-green-react@<version>` tag and
+   creates a GitHub release.
+
+Nothing is published while no changeset exists, so `main` can sit unreleased
+indefinitely — with one exception: `@dalcvi/steam-green-react` is not on the
+registry yet, so the first release run publishes the current `0.1.0` directly.
 
 ### First-time setup
 
@@ -111,14 +135,18 @@ own `index.ts` **and** from `src/index.ts`, and add a story next to it.
    default runs a Jekyll build that serves the README instead. Once the source
    is set, the Pages workflow publishes Storybook to
    `https://<owner>.github.io/<repo>/`.
-2. **npm publishing** — create an npm **Automation** token for the
-   `@dalcvi` scope and store it as the repository secret `NPM_TOKEN`.
-3. **Release** — bump and tag, then push:
+2. **npm publishing** — create an npm **Automation** token for the `@dalcvi`
+   scope and store it as the repository secret `NPM_TOKEN`
+   (**Settings → Secrets and variables → Actions**). The release workflow
+   exports it as `NODE_AUTH_TOKEN`, which `actions/setup-node` picks up.
+3. **Allow the version PR** — enable **Settings → Actions → General →
+   *Allow GitHub Actions to create and approve pull requests***, otherwise the
+   workflow cannot open the “chore: version packages” pull request.
 
-   ```bash
-   pnpm version patch   # or minor / major
-   git push --follow-tags
-   ```
+> **Note:** commits and pull requests created with the default `GITHUB_TOKEN`
+> do not trigger other workflows, so the “chore: version packages” PR shows no
+> CI checks. If CI is a required status check on `main`, pass a personal access
+> token to the action's `github-token` input so that PR triggers CI.
 
 ## Credits
 

@@ -1,25 +1,38 @@
 name: Release
 
-# Publishes @dalcvi/steam-green-react to the public npm registry.
+# Releases @dalcvi/steam-green-react with Changesets (https://changesets.dev).
 #
-#   pnpm version patch|minor|major
-#   git push --follow-tags
+# Every push to main runs changesets/action, which either:
+#   1. opens/updates the "chore: version packages" pull request while unreleased
+#      changesets exist, or
+#   2. publishes to npm, pushes the release tag and creates the GitHub release
+#      once that PR is merged (leaving main with no pending changesets).
+#
+# Add a changeset to any PR that changes the published package:
+#
+#   pnpm changeset
 #
 # Requires an npm Automation token in the repository secret NPM_TOKEN
-# (Settings → Secrets and variables → Actions).
+# (Settings -> Secrets and variables -> Actions) and the "Allow GitHub Actions
+# to create and approve pull requests" option enabled under Actions -> General.
 
 on:
   push:
-    tags: ['v*.*.*']
+    branches: [main]
   workflow_dispatch:
 
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
 permissions:
-  contents: read
+  contents: write # version commits, release tags and GitHub releases
+  pull-requests: write # the "chore: version packages" pull request
   id-token: write # npm provenance
 
 jobs:
-  publish:
-    name: Publish to npm
+  release:
+    name: Version & publish
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -38,22 +51,17 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Verify tag matches package version
-        if: startsWith(github.ref, 'refs/tags/v')
-        run: |
-          PKG_VERSION="v$(node -p "require('./package.json').version")"
-          if [ "$PKG_VERSION" != "${GITHUB_REF_NAME}" ]; then
-            echo "::error::Tag ${GITHUB_REF_NAME} does not match package.json version ${PKG_VERSION}"
-            exit 1
-          fi
-
-      - name: Typecheck
-        run: pnpm run typecheck
-
-      - name: Build
-        run: pnpm run build
-
-      - name: Publish
-        run: pnpm publish --access public --no-git-checks --provenance
+      # Version mode: rewrites package.json + CHANGELOG.md and opens the PR.
+      # Publish mode: runs `pnpm run release`, and `pnpm publish` triggers the
+      # prepublishOnly guard (typecheck + build) before uploading the tarball.
+      - name: Create release pull request or publish to npm
+        uses: changesets/action@v2.1.2
+        with:
+          version-script: pnpm run version-packages
+          publish-script: pnpm run release
+          commit-message: "chore: version packages"
+          pr-title: "chore: version packages"
         env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_CONFIG_PROVENANCE: "true"
