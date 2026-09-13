@@ -1,6 +1,6 @@
 {
   "name": "@dalcvil/steam-green-react",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Tree-shakable React components for the classic Green Steam (VGUI) theme.",
   "keywords": [
     "react",
