@@ -89,3 +89,17 @@ export const Surfaces: Story = {
     </div>
   ),
 }
+
+/**
+ * The tabs sit on a `--vgui-tabs-box` shelf that is as wide as the sheet, not
+ * as wide as the tabs, and the selected tab erases the rail above it so it ends
+ * flush on that shelf.
+ */
+export const NarrowStripWideShelf: Story = {
+  args: { tabs: settingsTabs.slice(0, 2) },
+  render: (args) => (
+    <div style={{ width: 420 }}>
+      <Tabs {...args} />
+    </div>
+  ),
+}

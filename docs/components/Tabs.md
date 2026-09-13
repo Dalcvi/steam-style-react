@@ -120,6 +120,8 @@ steam-scheme:39    LightClayButtonBG = #7D8078 // "buttons on property sheet int
               aria-label="Close Audio tab"></button>
     </button>
   </div>
+  <!-- the shelf: full sheet width, --vgui-tabs-box tall, decorative only -->
+  <div class="vgui-tabs__box"></div>
   <div class="vgui-tabs__panel vgui-tabs__panel--clay" role="tabpanel"
        id="panel-video" aria-labelledby="tab-video" tabindex="0">
     <!-- fields -->
@@ -143,6 +145,7 @@ then needs `tabindex` and its own key handling.
 | Selected, focused | `#4C5844` | `#C4B550` | + dotted focus ring |
 | Disabled | `#4C5844` | `#75806F` + `#282E22` shadow | unchanged |
 | Flash (changed) | `#4C5844` | `#C4B550` (`Maize`) | unchanged |
+| Shelf (`vgui-tabs__box`) | `#4C5844` (`GreenBG`) | — | borderless, full sheet width, `--vgui-tabs-box` tall |
 | Page interior | `#686A65` (`LightClayBG`) | `#FFFFFF` | flat 1px `#4A4846` (`PropertySheetBG`) |
 
 > **`LightClayButtonBG` `#7D8078` is not a `Tabs` token.** `steamscheme.res:39`
@@ -158,17 +161,23 @@ then needs `tabindex` and its own key handling.
 | --- | --- | --- |
 | `--vgui-surface` | `#4C5844` | Tab fill (`GreenBG`) — **both** states |
 | `--vgui-text-strong` | `#FFFFFF` | Unselected label |
-| `--vgui-heading` | `#C4B550` | Selected label (`Over`) |
+| `--vgui-heading` | `#C4B550` | The corpus' `Over` maize, quoted for reference — **not** what ships. It is only 3.62:1 on the tab fill, so the selected label uses `--vgui-text-hover` instead (see Accessibility) |
+| `--vgui-text-hover` | `#E3E41F` | Selected label. Contrast fix 1 from the Accessibility section — 5.52:1 on the tab fill, where the corpus' `--vgui-heading` maize is 3.62:1 |
 | `--vgui-clay-light` | `#686A65` | Page interior (`LightClayBG`, `steamscheme.res:38`) |
 | `--vgui-clay-surface` | `#464646` | Page interior 1px frame (`ClayBG`) |
-| `--vgui-tabs-gap` | `3px` | `PropertySheet.TabGap` (`steam.styles:337`) |
-| `--vgui-tabs-overlap` | `1px` | The seam erasure; derived from `y1 + 2` — **new token** |
+| `--vgui-tabs-gap` | `0px` | **Library default, not the corpus' 3px.** The tab bevels are the separation now; `PropertySheet.TabGap` (`steam.styles:337`) is still the source of truth for anyone who sets the token |
+| `--vgui-tabs-padding-y` | `2px` | A tab's vertical padding, so the selected tab's arithmetic reads off one metric |
+| `--vgui-tabs-grow` | `2px` | How much taller, at the top only, the selected tab is than its siblings |
+| `--vgui-tabs-overlap` | `1px` | The seam erasure; derived from `y1 + 2` |
+| `--vgui-tabs-box` | `6px` | Height of the shelf under the strip |
 | `--vgui-tabs-close-slot` | `16px` | `TabPageCloseButton { padding-right = 16 }` (`:3130`) |
 | `--vgui-focus-ring` | `#292D23` | Dotted focus ring |
 
-No new colours are needed. `--vgui-tabs-overlap` is a new *metric* token whose
-only job is to document that the selected tab must overlap the panel by at least
-1px, and why.
+No new colours are needed. **None of the `--vgui-tabs-*` properties live in
+`tokens.css`** — they are component-local, read as `var(<token>, <literal>)`, so
+an unthemed `Tabs` still renders correctly. The padding token is the load-bearing
+one: the selected tab's growth is derivable only because the padding it starts
+from is a token rather than a literal buried inside the selected block.
 
 ## CSS recipe
 
@@ -181,18 +190,30 @@ only job is to document that the selected tab must overlap the panel by at least
 .vgui-tabs__strip {
   display: flex;
   align-items: flex-end;
-  gap: var(--vgui-tabs-gap, 3px);     /* PropertySheet.TabGap = 3 */
+  gap: var(--vgui-tabs-gap, 0);        /* no gap; the bevels separate the tabs */
   /* The strip's own bottom border is the rail the selected tab must erase. */
   border-bottom: 1px solid var(--vgui-bevel-dark);
   padding-left: 0;
+}
+
+/* The shelf: the strip's base, as wide as the sheet rather than the tabs. */
+.vgui-tabs__box {
+  height: var(--vgui-tabs-box, 6px);
+  background-color: var(--vgui-surface, #4c5844);
 }
 
 .vgui-tabs__tab {
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  /* Load-bearing. A plain tab is a `<button>` and a closable one is a `<div>`,
+     and the UA sheet box-sizes the button as `border-box` but leaves the div
+     `content-box`; without this the two forms are 4px apart in height. It is
+     also what makes the selected tab's content box (`27 - 7`) equal an
+     unselected tab's (`24 - 4`), so the label cannot shift on selection. */
+  box-sizing: border-box;
   min-height: 24px;
-  padding: 2px 10px;
+  padding: var(--vgui-tabs-padding-y, 2px) 10px;
   border: 0;
   border-radius: 0;                    /* nothing in VGUI is rounded */
   background-color: var(--vgui-surface, #4c5844);
@@ -209,11 +230,20 @@ only job is to document that the selected tab must overlap the panel by at least
 }
 
 .vgui-tabs__tab--selected {
-  color: var(--vgui-heading, #c4b550);
+  color: var(--vgui-text-hover, #e3e41f);
+  /* Grow upward: `align-items: flex-end` pins the bottom edge, so height added
+     at the top raises the tab's top instead of its label. The overlap is taken
+     back out of the bottom padding and re-added as a negative margin, so the
+     content box — and with it the label's baseline — is the one an unselected
+     tab has. Folding both into min-height is what makes that exact rather than
+     approximate. */
+  min-height: calc(24px + var(--vgui-tabs-grow, 2px) + var(--vgui-tabs-overlap, 1px));
+  padding-top: calc(var(--vgui-tabs-padding-y, 2px) + var(--vgui-tabs-grow, 2px));
+  padding-bottom: calc(var(--vgui-tabs-padding-y, 2px) + var(--vgui-tabs-overlap, 1px));
   /* The seam erasure: 1px pulls the fill down over the strip's bottom border,
-     exactly as fill( x0 + 1, y1 - 1, x1 - 1, y1 + 2, GreenBG ) does. */
+     exactly as fill( x0 + 1, y1 - 1, x1 - 1, y1 + 2, GreenBG ) does, so the
+     tab ends flush on the shelf. */
   margin-bottom: calc(-1 * var(--vgui-tabs-overlap, 1px));
-  padding-bottom: 3px;
   /* The selected tab's side borders start at y0 + 1, so only the top and sides
      below the top are drawn — the top rail stays continuous. */
   box-shadow:
@@ -234,6 +264,26 @@ continuous with the page. Without it the tab looks like a floating button that
 happens to have a maize label, which is what a naive recreation always looks
 like.
 
+**The selected tab's extra height is a *layout* change with a *paint* sized
+compensation.** It has to be layout — the outline that marks a focused tab
+follows the box, and a pseudo-element would leave the ring drawn inside the
+grown edge — so the arithmetic is arranged to be exact rather than approximate:
+`align-items: flex-end` pins the bottom edge, the growth goes into `padding-top`,
+and `padding-bottom` grows by the overlap that `margin-bottom` takes back out.
+That leaves the content box exactly the height an unselected tab's is, which is
+why the label does not move: the top rises by `--vgui-tabs-grow` and the label
+stays on the same pixel row. Since the growth is a constant and not a function of
+*which* tab is selected, the strip's own height never changes and the strip
+cannot jitter.
+
+**The shelf is why the strip does not need to stretch its tabs.** `vgui-tabs__box`
+is a sibling of the strip, so it is sized by the sheet (a full-width flex item in
+the column) while the strip is content-sized; the tabs can end halfway across and
+the shelf still reaches the panel's edges. It is the same fill as the tabs —
+`GreenBG` — because `PageTab`'s own bottom edge is `GreenBG`, not a border colour,
+so the selected tab's rail erasure lands on a surface of its own colour and the
+two read as one object.
+
 **Do not use `border-bottom: 0` on the selected tab instead.** That removes the
 border from the *layout box*, so the tab is 1px shorter than its siblings and the
 strip visibly jitters when you click between tabs. The overlap must be a paint
@@ -242,6 +292,26 @@ layer change (negative margin, or a `::after`), never a box-model change.
 **`PropertySheet.TransitionEffectTime "0"` is a direct instruction**: no
 cross-fade when switching tabs. Wiring a 150ms transition between panels is a
 modern reflex and is explicitly disabled in the original.
+
+**Geometry measured, not assumed.** jsdom computes no layout, so every claim
+above was checked in a real engine against a 420px sheet with one selected
+`<button>`, one unselected `<button>` and one unselected `<div>`:
+
+| Measurement | Result | Why it matters |
+|---|---|---|
+| tab-to-tab gap | `0.00px` | the bevels are the separation |
+| `box.top − strip.bottom` | `0.00px` | no seam between rail and shelf |
+| shelf size | `420 × 6px` | full sheet width while the tabs total 200px |
+| `panel.top − box.bottom` | `0.00px` | panel seats directly on the shelf |
+| unselected tab bottom − shelf top | `−1.00px` | the tab stops *above* the rail |
+| selected tab bottom − shelf top | `0.00px` | it paints the rail over and lands flush |
+| selected top − unselected top | `−2.00px` | the growth, upward only |
+| selected label top − unselected label top | `0.00px` | **the text does not move** |
+| closable `<div>` height − plain `<button>` height | `0.00px` | the `box-sizing` fix above |
+
+Regression-test this by re-measuring, not by reading the CSS — the two failures
+this recipe actually had (the `content-box` div and the pre-fix gap) were both
+invisible in the stylesheet and obvious on screen.
 
 ## React API
 
@@ -317,7 +387,9 @@ with automatic activation, a panel that loads slowly cannot be browsed past.
 - **Colour alone must not signal selection (WCAG 1.4.1).** The seam erasure is
   the non-colour cue, which is exactly why it is load-bearing rather than
   cosmetic — the design already satisfies 1.4.1 through geometry. Keep it even if
-  the label colour changes. Add `aria-selected` regardless.
+  the label colour changes, and keep the selected tab's upward growth: it is a
+  *second*, non-colour cue that widens the margin between the two test results.
+  Add `aria-selected` regardless.
 - **The close button inside a tab is a focus-order hazard.** It must be
   `tabindex="-1"` (reachable only once the tab is selected) or the strip becomes
   twice as long to Tab through. Announce it with `aria-label="Close <name> tab"`
@@ -369,8 +441,9 @@ No other tab art exists: the strip, bevel, interior and flash are all drawn by
   pixels *past* `y1` on the assumption that something is there to erase. What
   draws that something — the `PropertySheet` page border (`PageTabBorder`
   `#747474`, `steam.styles:267`?) or the `Frame` — is not in the stylesheet. The
-  recipe above assumes the strip owns a 1px bottom border; verify against a
-  screenshot.
+  recipe above assumes the strip owns a 1px bottom border, and the library's own
+  shelf (`vgui-tabs__box`) is an addition on top of it rather than evidence for
+  it; verify against a screenshot.
 - **`PageTabBorder` and `PageTabBorderCorner` are declared but unused by
   `PageTab`.** `steam.styles:267` and `:269` define `#747474` and `#5D5D5D`; no
   `fill` in the `PageTab` family references either. They are very likely the
@@ -383,7 +456,16 @@ No other tab art exists: the strip, bevel, interior and flash are all drawn by
   strength of an unused token; VGUI's `PageTab` is square.
 - **`PropertySheet.TabGap "3"` is a `PropertySheet` metric, not a `PageTab`
   one.** Whether the 3px sits *between* tabs or *outside* the strip is not
-  stated. The recipe assumes between.
+  stated. **Resolved for the library:** the default is `0`, because the tabs'
+  own `BorderBright`/`BorderDark` bevels already read as the separation and a gap
+  left the selected tab floating above the shelf instead of standing on it. The
+  token is kept so a caller can restore the corpus' 3px — this is a deliberate
+  deviation from `steam.styles:337`, not an oversight.
+- **The shelf (`vgui-tabs__box`) is an invention.** Nothing in the corpus draws a
+  base under the tab strip; it was added to make the rail the selected tab erases
+  part of a surface rather than a free-floating line. It borrows `GreenBG`, which
+  is what `PageTab` itself fills its bottom edge with, so it extends a documented
+  material rather than introducing one.
 - **A vertical tab strip has no precedent.** `PageTab` draws `GreenBG` on its
   bottom edge, which only makes sense for a horizontal tab whose seam runs along
   the bottom. A vertical variant needs the whole scheme rotated (right edge

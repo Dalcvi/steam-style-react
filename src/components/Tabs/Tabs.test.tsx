@@ -25,6 +25,21 @@ describe('Tabs', () => {
     expect(tab('Video')).toHaveClass('vgui-tabs__tab')
   })
 
+  it('draws the shelf between the tablist and the panels', () => {
+    const { container } = render(<Tabs tabs={tabs} />)
+
+    const strip = screen.getByRole('tablist')
+    const box = container.querySelector('.vgui-tabs__box')
+
+    // The shelf is as wide as the sheet, not as wide as the tabs, so it is the
+    // strip's sibling rather than one of its flex items.
+    expect(box).not.toBeNull()
+    expect(strip.nextElementSibling).toBe(box)
+    expect(box?.nextElementSibling).toHaveClass('vgui-tabs__panel')
+    // Decorative paint: no content, no role, no tab stop.
+    expect(box).toBeEmptyDOMElement()
+  })
+
   it('selects the first enabled tab and keeps the strip a single tab stop', () => {
     render(<Tabs tabs={tabs} defaultValue="keyboard" />)
 
