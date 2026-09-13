@@ -103,7 +103,7 @@ own `index.ts` **and** from `src/index.ts`, and add a story next to it.
 
 | Workflow | Trigger | What it does |
 | --- | --- | --- |
-| `.github/workflows/ci.yml` | push to `main`, PRs | Typechecks, builds the library and Storybook, uploads `dist` as an artifact. |
+| `.github/workflows/ci.yml` | push to `main`, PRs | Typechecks, builds the library and Storybook. |
 | `.github/workflows/pages.yml` | push to `main` | Builds Storybook and deploys it to GitHub Pages. |
 | `.github/workflows/release.yml` | **CI** finishing successfully on `main` | Opens/updates the *“chore: version packages”* PR, then publishes to npm **with provenance** and creates the GitHub release once that PR is merged. Never runs on a plain push, so a red CI run cannot release. |
 

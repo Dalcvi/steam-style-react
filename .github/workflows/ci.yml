@@ -37,10 +37,3 @@ jobs:
 
       - name: Build Storybook
         run: pnpm run build-storybook
-
-      - name: Upload library build
-        uses: actions/upload-artifact@v5
-        with:
-          name: dist
-          path: dist
-          if-no-files-found: error
