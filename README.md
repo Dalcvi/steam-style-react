@@ -1,4 +1,4 @@
-# @dalcvi/steam-green-react
+# @dalcvil/steam-green-react
 
 React components for the classic Green Steam (VGUI) look, ported from
 [VGUI.css](https://github.com/AlpyneDreams/vgui.css).
@@ -12,8 +12,8 @@ React components for the classic Green Steam (VGUI) look, ported from
 ## Installation
 
 ```bash
-pnpm add @dalcvi/steam-green-react
-# or: npm install @dalcvi/steam-green-react
+pnpm add @dalcvil/steam-green-react
+# or: npm install @dalcvil/steam-green-react
 ```
 
 `react` and `react-dom` (`^18` or `^19`) are peer dependencies.
@@ -21,10 +21,10 @@ pnpm add @dalcvi/steam-green-react
 ## Usage
 
 ```tsx
-import { GreenButton } from '@dalcvi/steam-green-react'
+import { GreenButton } from '@dalcvil/steam-green-react'
 
 // Optional: the global Green Steam theme (background, typography, links…)
-import '@dalcvi/steam-green-react/styles/theme.css'
+import '@dalcvil/steam-green-react/styles/theme.css'
 
 export function App() {
   return <GreenButton onClick={() => alert('Hello')}>Click me</GreenButton>
@@ -120,11 +120,11 @@ Releases are managed by [Changesets](https://changesets.dev) — the version in
    **“chore: version packages”** pull request, which applies the bumps,
    regenerates `CHANGELOG.md` and deletes the consumed changeset files.
 3. Merge that pull request. The next release run finds no pending changesets, so
-   it publishes to npm, pushes the `@dalcvi/steam-green-react@<version>` tag and
+   it publishes to npm, pushes the `@dalcvil/steam-green-react@<version>` tag and
    creates a GitHub release.
 
 Nothing is published while no changeset exists, so `main` can sit unreleased
-indefinitely — with one exception: `@dalcvi/steam-green-react` is not on the
+indefinitely — with one exception: `@dalcvil/steam-green-react` is not on the
 registry yet, so the first release run publishes the current `0.1.0` directly.
 
 ### First-time setup
@@ -135,7 +135,7 @@ registry yet, so the first release run publishes the current `0.1.0` directly.
    default runs a Jekyll build that serves the README instead. Once the source
    is set, the Pages workflow publishes Storybook to
    `https://<owner>.github.io/<repo>/`.
-2. **npm publishing** — create an npm **Automation** token for the `@dalcvi`
+2. **npm publishing** — create an npm **Automation** token for the `@dalcvil`
    scope and store it as the repository secret `NPM_TOKEN`
    (**Settings → Secrets and variables → Actions**). The release workflow
    exports it as `NODE_AUTH_TOKEN`, which `actions/setup-node` picks up.

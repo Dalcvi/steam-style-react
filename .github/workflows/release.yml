@@ -1,6 +1,6 @@
 name: Release
 
-# Releases @dalcvi/steam-green-react with Changesets (https://changesets.dev).
+# Releases @dalcvil/steam-green-react with Changesets (https://changesets.dev).
 #
 # Every push to main runs changesets/action, which either:
 #   1. opens/updates the "chore: version packages" pull request while unreleased
