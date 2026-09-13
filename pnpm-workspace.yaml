@@ -1,0 +1,7 @@
+packages:
+  - '.'
+
+# pnpm blocks dependency build scripts by default. esbuild comes in through
+# Vite's toolchain and needs its postinstall step to install the platform binary.
+allowBuilds:
+  esbuild: true

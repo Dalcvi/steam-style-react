@@ -1,0 +1,122 @@
+/*
+ * Global Green Steam (VGUI) theme.
+ *
+ * Only document-level rules live here — the element defaults and shared layout
+ * helpers that every component inherits. Anything that belongs to a specific
+ * component is colocated with that component instead (see
+ * `components/GreenButton/GreenButton.css`).
+ *
+ * Derived from VGUI.css <https://github.com/AlpyneDreams/vgui.css> (MIT).
+ */
+
+body {
+  background-color: #3e4637;
+  font-family: "Trebuchet MS", "Verdana", sans-serif;
+  color: #d8ded3;
+  font-size: 14px;
+  image-rendering: pixelated;
+  margin: 20px 20px;
+}
+
+::selection {
+  background-color: #96892d;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin: 3px 12px 12px;
+}
+
+h1,
+h2 {
+  color: #c4b550;
+}
+
+h1 {
+  font-size: 18px;
+}
+
+h2 {
+  font-size: 16px;
+}
+
+p {
+  text-align: left;
+  margin: 12px 12px 12px;
+  color: #d8ded3;
+}
+
+a {
+  text-decoration: none;
+  color: #aaaaaa;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+code {
+  background: #3e4637;
+  padding: 0 3px;
+  font-family: monospace;
+}
+
+hr {
+  margin: 20px 0;
+  border: none;
+  height: 1px;
+  background-color: #3e4637;
+}
+
+img {
+  object-fit: contain;
+  margin: 2px;
+  border: solid 2px #7b8484;
+}
+
+fieldset {
+  border-top: solid 1px #292d23;
+  border-bottom: solid 1px #899281;
+  border-left: solid 1px #292d23;
+  border-right: solid 1px #899281;
+}
+
+legend {
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-size: 12px;
+  color: white;
+  font-weight: bold;
+}
+
+/* Shared layout helpers */
+
+.flex-row {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+}
+
+.flex-column {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.border {
+  border-top: solid 1px #899281;
+  border-bottom: solid 1px #292d23;
+  border-left: solid 1px #899281;
+  border-right: solid 1px #292d23;
+}
+
+.border-inverted {
+  border-top: solid 1px #292d23;
+  border-bottom: solid 1px #899281;
+  border-left: solid 1px #292d23;
+  border-right: solid 1px #899281;
+}

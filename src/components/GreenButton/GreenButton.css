@@ -1,0 +1,47 @@
+/*
+ * Green Steam button.
+ *
+ * The upstream VGUI.css targets the bare `button` element. As a component we
+ * scope the same declarations to `.greensteam-button` so the component can be
+ * dropped into any page without restyling every button on it.
+ */
+
+.greensteam-button {
+  color: white;
+  background-color: #4c5844;
+  height: 25px;
+  min-width: 75px;
+  padding: 0 8px;
+  cursor: pointer;
+  border-top: solid 1px #899281;
+  border-bottom: solid 1px #292d23;
+  border-left: solid 1px #899281;
+  border-right: solid 1px #292d23;
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: lighter;
+  text-align: left;
+  -webkit-font-smoothing: none;
+}
+
+.greensteam-button:active {
+  border-top: solid 1px #292d23;
+  border-bottom: solid 1px #899281;
+  border-left: solid 1px #292d23;
+  border-right: solid 1px #899281;
+}
+
+.greensteam-button:focus-visible {
+  outline: 1px dashed #292d23;
+  outline-offset: -4px;
+}
+
+.greensteam-button:disabled {
+  color: #8b9481;
+  cursor: default;
+}
+
+.greensteam-button--full-width {
+  display: block;
+  width: 100%;
+}
