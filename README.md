@@ -49,6 +49,10 @@ Storybook story.
 
 ## Development
 
+Node 24 is required. `.nvmrc` pins the exact version and is also what the
+workflows read via `node-version-file`, so the local toolchain and CI cannot
+drift apart. pnpm 12 is pinned through the `packageManager` field.
+
 ```bash
 pnpm install
 pnpm storybook          # Storybook on http://localhost:6006
@@ -101,8 +105,10 @@ own `index.ts` **and** from `src/index.ts`, and add a story next to it.
 
 ### First-time setup
 
-1. **GitHub Pages** — nothing to do. The Pages workflow enables Pages via the
-   API on its first run and publishes Storybook to
+1. **GitHub Pages** — set **Settings → Pages → Source** to **GitHub Actions**.
+   The default *Deploy from a branch* source runs a Jekyll build that serves the
+   README, and an Actions artifact cannot be published to a branch-configured
+   site. Once the source is set, the Pages workflow publishes Storybook to
    `https://<owner>.github.io/<repo>/`.
 2. **npm publishing** — create an npm **Automation** token for the
    `@dalcvi` scope and store it as the repository secret `NPM_TOKEN`.
