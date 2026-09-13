@@ -106,9 +106,10 @@ own `index.ts` **and** from `src/index.ts`, and add a story next to it.
 ### First-time setup
 
 1. **GitHub Pages** — set **Settings → Pages → Source** to **GitHub Actions**.
-   The default *Deploy from a branch* source runs a Jekyll build that serves the
-   README, and an Actions artifact cannot be published to a branch-configured
-   site. Once the source is set, the Pages workflow publishes Storybook to
+   This cannot be automated: `GITHUB_TOKEN` is denied the Pages-creation API
+   (*Resource not accessible by integration*), and the *Deploy from a branch*
+   default runs a Jekyll build that serves the README instead. Once the source
+   is set, the Pages workflow publishes Storybook to
    `https://<owner>.github.io/<repo>/`.
 2. **npm publishing** — create an npm **Automation** token for the
    `@dalcvi` scope and store it as the repository secret `NPM_TOKEN`.
