@@ -2,6 +2,7 @@ import { forwardRef, useCallback, useLayoutEffect, useRef, useState } from 'reac
 import type { InputEvent, TextareaHTMLAttributes } from 'react'
 
 import './Textarea.css'
+import '../../styles/scrollbars.css'
 
 export interface TextareaProps extends Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, 'children'> {
   /** Visible rows. Sets `rows`; the 60px `min-height` still applies. */
@@ -89,7 +90,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(function 
     <span className={classes.join(' ')}>
       <textarea
         ref={setRefs}
-        className="vgui-textarea__field"
+        className="vgui-textarea__field vgui-scroll-surface"
         rows={rows}
         value={value}
         defaultValue={defaultValue}

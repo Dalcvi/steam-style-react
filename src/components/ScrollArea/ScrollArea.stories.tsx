@@ -32,7 +32,7 @@ const meta = {
   argTypes: {
     inset: { control: 'boolean' },
     axis: { control: 'inline-radio', options: ['vertical', 'horizontal', 'both'] },
-    customScrollbar: { control: 'boolean' },
+    variant: { control: 'inline-radio', options: ['drawn', 'native'] },
     maxHeight: { control: 'text' },
     shadows: { control: 'boolean' },
     focusable: { control: 'boolean' },
@@ -42,7 +42,7 @@ const meta = {
   args: {
     inset: false,
     axis: 'vertical',
-    customScrollbar: false,
+    variant: 'drawn',
     shadows: true,
     children: <Lines />,
   },
@@ -85,9 +85,9 @@ export const Both: Story = {
   args: { axis: 'both', inset: true },
 }
 
-export const CustomScrollbar: Story = {
+export const NativeScrollbar: Story = {
   decorators: Default.decorators,
-  args: { customScrollbar: true, inset: true },
+  args: { variant: 'native', inset: true },
 }
 
 export const NoShadows: Story = {
@@ -111,7 +111,7 @@ export const States: Story = {
         <ScrollArea {...args} inset aria-label="Inset" />
       </div>
       <div style={{ width: 120, height: 160 }}>
-        <ScrollArea {...args} inset customScrollbar aria-label="Custom" />
+        <ScrollArea {...args} inset variant="native" aria-label="Native bar" />
       </div>
     </div>
   ),

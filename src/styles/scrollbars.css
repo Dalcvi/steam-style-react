@@ -1,0 +1,123 @@
+/*
+ * Green Steam scrollbar skin for the platform's own scrollbar.
+ *
+ * The library's scrollbar is the 18px VGUI bar: a light-green gutter, a
+ * surface-green thumb with a raised bevel, and an 18x18 arrow button at each
+ * end (docs/components/Scrollbar.md). There are three ways to paint it and they
+ * are meant to be indistinguishable:
+ *
+ *   1. `Scrollbar` draws it as a button/gutter/thumb tree, which is the only
+ *      way to get dragging, clicking and a stable gutter in every browser.
+ *   2. `ScrollArea` draws the same bar, without the interaction, for regions
+ *      that only need the look.
+ *   3. This file paints it onto the *platform* bar, so a component that
+ *      scrolls its own content — a table body, a console, a textarea, a combo
+ *      box list — reads as the same control.
+ *
+ * Opt in by putting `.vgui-scroll-surface` on any scrolling element:
+ *
+ *   <div class="vgui-scroll-surface" style="overflow-y: auto">…</div>
+ *
+ * Every self-scrolling component in the library already does this. Fidelity is
+ * browser-dependent and cannot be raised:
+ *
+ *   - WebKit and Blink paint the whole thing, arrow buttons included. That is
+ *     every engine but Firefox, and Firefox has no scrollbar pseudo-elements at
+ *     all — `scrollbar-color` recolours the gutter and the thumb and stops
+ *     there, so the bevel and the arrows are lost there and only there.
+ *   - Forced-colors mode drops the colours and keeps the geometry, which is the
+ *     correct behaviour rather than a gap to close.
+ *   - Scrollbar colours do not animate and the arrows cannot host a `::before`,
+ *     which is why the glyph below is a stack of gradient layers rather than a
+ *     `clip-path` triangle like the drawn bar's.
+ *
+ * Like every other stylesheet in the package this reads the shared tokens with
+ * literal fallbacks, so it resolves on a page that never imported the theme.
+ */
+
+.vgui-scroll-surface {
+  /* Thumb first, then track — `steam.styles:2240`, `:2291`. */
+  scrollbar-color: var(--vgui-scrollbar-thumb, #4c5844) var(--vgui-scrollbar-gutter, #5a6a50);
+  /* `thin` and `none` would take the arrows with them, so the bar keeps its own
+   * 18px size and the `scrollbar-width` shorthand is pinned back to `auto`. */
+  scrollbar-width: auto;
+}
+
+.vgui-scroll-surface::-webkit-scrollbar {
+  inline-size: var(--vgui-scrollbar-size, 18px);
+  block-size: var(--vgui-scrollbar-size, 18px);
+  background-color: var(--vgui-scrollbar-gutter, #5a6a50);
+}
+
+/* The square where the two bars meet. `ListView.Corner` makes it darker. */
+.vgui-scroll-surface::-webkit-scrollbar-corner {
+  background-color: var(--vgui-scrollbar-corner, #5a6a50);
+}
+
+/* A box-shadow ring cannot be split into a light and a dark side, so the bevel
+ * is the border (docs/foundations.md §4). */
+.vgui-scroll-surface::-webkit-scrollbar-thumb {
+  background-color: var(--vgui-scrollbar-thumb, #4c5844);
+  border: var(--vgui-bevel-width, 1px) solid;
+  border-color: var(--vgui-bevel-light, #899281) var(--vgui-bevel-dark, #292d23)
+    var(--vgui-bevel-dark, #292d23) var(--vgui-bevel-light, #899281);
+}
+
+/* The arrow: four half-open fills, 7px wide by 4px tall, laid out as the
+ * staircase VGUI's glyph actually is (docs/components/Scrollbar.md). Four 1px
+ * gradient layers reproduce it, because a scrollbar button has no `::before`. */
+.vgui-scroll-surface::-webkit-scrollbar-button {
+  --vgui-scrollbar-glyph: var(--vgui-scrollbar-glyph-color, #a0aa95);
+  inline-size: var(--vgui-scrollbar-button-size, 18px);
+  block-size: var(--vgui-scrollbar-button-size, 18px);
+  background-color: var(--vgui-scrollbar-thumb, #4c5844);
+  background-image: linear-gradient(var(--vgui-scrollbar-glyph), var(--vgui-scrollbar-glyph)),
+    linear-gradient(var(--vgui-scrollbar-glyph), var(--vgui-scrollbar-glyph)),
+    linear-gradient(var(--vgui-scrollbar-glyph), var(--vgui-scrollbar-glyph)),
+    linear-gradient(var(--vgui-scrollbar-glyph), var(--vgui-scrollbar-glyph));
+  background-repeat: no-repeat;
+  border: var(--vgui-bevel-width, 1px) solid;
+  border-color: var(--vgui-bevel-light, #899281) var(--vgui-bevel-dark, #292d23)
+    var(--vgui-bevel-dark, #292d23) var(--vgui-bevel-light, #899281);
+}
+
+/* Up: the staircase is narrowest at its tip. Positions are measured from the
+ * padding box, so 6px..9px is the glyph centered in an 18px button. */
+.vgui-scroll-surface::-webkit-scrollbar-button:vertical {
+  background-size: 1px 1px, 3px 1px, 5px 1px, 7px 1px;
+  background-position: center 6px, center 7px, center 8px, center 9px;
+}
+
+.vgui-scroll-surface::-webkit-scrollbar-button:vertical:increment {
+  background-size: 7px 1px, 5px 1px, 3px 1px, 1px 1px;
+}
+
+.vgui-scroll-surface::-webkit-scrollbar-button:horizontal {
+  background-size: 1px 1px, 1px 3px, 1px 5px, 1px 7px;
+  background-position: 6px center, 7px center, 8px center, 9px center;
+}
+
+.vgui-scroll-surface::-webkit-scrollbar-button:horizontal:increment {
+  background-size: 1px 7px, 1px 5px, 1px 3px, 1px 1px;
+}
+
+/* Hover recolours the glyph and press inverts the box — the same two rules the
+ * drawn bar follows (`steam.styles:2030-2067`). */
+.vgui-scroll-surface::-webkit-scrollbar-button:hover {
+  --vgui-scrollbar-glyph: var(--vgui-text-strong, #ffffff);
+}
+
+.vgui-scroll-surface::-webkit-scrollbar-button:active {
+  border-color: var(--vgui-bevel-dark, #292d23) var(--vgui-bevel-light, #899281)
+    var(--vgui-bevel-light, #899281) var(--vgui-bevel-dark, #292d23);
+}
+
+@media (forced-colors: active) {
+  .vgui-scroll-surface {
+    scrollbar-color: auto;
+  }
+
+  .vgui-scroll-surface::-webkit-scrollbar-button {
+    background-image: none;
+  }
+}

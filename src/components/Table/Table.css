@@ -172,7 +172,11 @@
   border-left: var(--vgui-bevel-width, 1px) solid var(--vgui-bevel-dark);
   border-right: var(--vgui-bevel-width, 1px) solid var(--vgui-bevel-light);
   border-bottom: var(--vgui-bevel-width, 1px) solid var(--vgui-bevel-light);
-  overflow-y: auto;
+  /* VGUI always shows the list's scrollbar, even when nothing overflows, so the
+     gutter is reserved and the bar is painted with a full-length thumb that
+     cannot be dragged yet — `overflow-y: scroll` gives exactly that. `auto`
+     would drop the bar and reflow every column. */
+  overflow-y: scroll;
 }
 
 .vgui-table__row {

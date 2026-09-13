@@ -6,13 +6,21 @@
  * (docs/components/Scrollbar.md). Almost none of that is reachable from CSS, so
  * the component splits in two:
  *
- *   1. The native path (the default) only recolours the user agent's own
- *      scrollbar with `scrollbar-color`. The colours transfer completely; wheel,
- *      trackpad, PageUp/PageDown, Home/End, autoscroll, rubber-banding and the
- *      OS's own size preference all stay the platform's job.
- *   2. The custom path reproduces the pressed bevel, which is WebKit-only anyway
- *      (`::-webkit-scrollbar-button` is in no specification). It is the last
- *      resort, never the default.
+ *   1. The drawn path (the default) is the button/gutter/thumb tree below. It
+ *      reproduces the pressed bevel, the arrow glyph and the stable gutter, and
+ *      it looks the same in every engine.
+ *   2. The native path skips the markup and skins the user agent's own bar with
+ *      `styles/scrollbars.css`. It costs nothing and keeps wheel, trackpad,
+ *      PageUp/PageDown, Home/End, autoscroll, rubber-banding and the OS's own
+ *      size preference as the platform's job — at the price of a bar that only
+ *      WebKit and Blink paint in full, since `::-webkit-scrollbar-button` is in
+ *      no specification.
+ *
+ * Both paths paint the same 18px bar with the same tokens, which is what makes
+ * `Scrollbar`, `ScrollArea`, the native skin and the rest of the library read as
+ * one control. The drawn bar is flush inside its 18px slot; VGUI's own
+ * `inset = "0 0 3 1"` only shrank the paint area within a wider slot, and
+ * reproducing that gap would misalign this bar against the other two paths.
  *
  * Press is nothing but the bevel: the arrow is `White` in both hover and active,
  * and the two bevel colours are 2.33:1 and 1.87:1 against the face
@@ -20,10 +28,8 @@
  * style, and the one perceivable difference press gains — the glyph dropping by
  * a pixel — is added here, exactly as docs/components/Scrollbar.md prescribes.
  *
- * `--vgui-scrollbar-width`, `--vgui-scrollbar-glyph-width`,
- * `--vgui-scrollbar-glyph-height` and `--vgui-scrollbar-button-size` are declared
- * by docs/components/Scrollbar.md but do not exist in src/styles/tokens.css yet,
- * so each `var()` carries the documented value as its fallback.
+ * The four `--vgui-scrollbar-*` metrics this file used to fall back on are
+ * declared in src/styles/tokens.css, so no `var()` here needs a literal.
  */
 
 /* --- Native path: no markup, no JS, no lost platform behaviour. --------- */
@@ -33,11 +39,9 @@
   position: relative;
   overflow: auto;
   overscroll-behavior: contain;
-  /* thumb then track: GreenBG in front of LightGreenBG (steam.styles:2240, :2291) */
-  scrollbar-color: var(--vgui-surface) var(--vgui-surface-light);
-  /* `scrollbar-width` accepts `auto | thin | none` only, so the 19px metric is
-   * deliberately NOT applied here: an invalid value would drop the whole
-   * declaration. The custom width reaches WebKit through ::-webkit-scrollbar. */
+  /* The bar's own colours are not set here: on the native path the region also
+   * carries `.vgui-scroll-surface`, and `styles/scrollbars.css` is the single
+   * place that skin is written down. */
   scroll-padding-block-end: var(--vgui-scrollbar-scroll-padding, 0);
   scroll-padding-inline-end: var(--vgui-scrollbar-scroll-padding, 0);
 }
@@ -73,92 +77,42 @@
   outline-offset: var(--vgui-focus-ring-valve-offset);
 }
 
-/* --- WebKit-only extras: the arrows and the pressed bevel. -------------- */
+/* --- WebKit-only extras: the pressed bevel of a disabled region. -------- */
 
-.vgui-scroll-region::-webkit-scrollbar {
-  width: var(--vgui-scrollbar-width, 19px);
-  height: var(--vgui-scrollbar-width, 19px);
-  background-color: var(--vgui-surface-light); /* the gutter, steam.styles:2291 */
-}
-
-.vgui-scroll-region::-webkit-scrollbar-corner {
-  background-color: var(--vgui-surface-light);
-}
-
-/* steam.styles:2240-2245 — GreenBG with the four bevel fills. A box-shadow ring
- * cannot be split into a light and a dark side, so the bevel is the border. */
-.vgui-scroll-region::-webkit-scrollbar-thumb {
-  background-color: var(--vgui-surface);
-  border: 1px solid;
-  border-color: var(--vgui-bevel-light) var(--vgui-bevel-dark) var(--vgui-bevel-dark) var(--vgui-bevel-light);
-}
-
-/* steam.styles:2018-2021, then :2024-2027 — the arrow is four half-open fills,
- * 7px wide and 4px tall, rebuilt here as four 1px gradient layers. */
-.vgui-scroll-region::-webkit-scrollbar-button {
-  --vgui-scrollbar-glyph: var(--vgui-text-muted);
-  background-color: var(--vgui-surface);
-  background-image: linear-gradient(var(--vgui-scrollbar-glyph), var(--vgui-scrollbar-glyph)),
-    linear-gradient(var(--vgui-scrollbar-glyph), var(--vgui-scrollbar-glyph)),
-    linear-gradient(var(--vgui-scrollbar-glyph), var(--vgui-scrollbar-glyph)),
-    linear-gradient(var(--vgui-scrollbar-glyph), var(--vgui-scrollbar-glyph));
-  background-repeat: no-repeat;
-  background-size: 1px 1px, 3px 1px, 5px 1px, 7px 1px;
-  background-position: center 6px, center 7px, center 8px, center 9px;
-  border: 1px solid;
-  border-color: var(--vgui-bevel-light) var(--vgui-bevel-dark) var(--vgui-bevel-dark) var(--vgui-bevel-light);
-}
-
-/* steam.styles:2030-2047 — hover changes the glyph and nothing else. */
-.vgui-scroll-region::-webkit-scrollbar-button:hover {
-  --vgui-scrollbar-glyph: var(--vgui-text-strong);
-}
-
-/* steam.styles:2049-2067 — active inverts every bevel and keeps the glyph White. */
-.vgui-scroll-region::-webkit-scrollbar-button:active {
-  border-color: var(--vgui-bevel-dark) var(--vgui-bevel-light) var(--vgui-bevel-light) var(--vgui-bevel-dark);
-}
+/* The rest of the platform arrow painting lives in `styles/scrollbars.css` and
+ * reaches this element through `.vgui-scroll-surface`, which the region carries
+ * on the native path only — the drawn path hides the platform bar outright. */
 
 /* steam.styles:2315-2319 — the disabled gutter paints nothing. Translucent
  * rather than a new colour, so it works over any parent surface. */
-.vgui-scroll-region[data-disabled]::-webkit-scrollbar {
+.vgui-scroll-surface[data-disabled]::-webkit-scrollbar {
   background-color: transparent;
 }
 
-@media (forced-colors: active) {
-  .vgui-scroll-region {
-    scrollbar-color: auto;
-  }
+/* --- Drawn path: the bar is a flex sibling, so it never scrolls away. --- */
 
-  .vgui-scroll-region::-webkit-scrollbar-button {
-    background-image: none;
-  }
-}
-
-/* --- Custom path: the bar is a flex sibling, so it never scrolls away. --- */
-
-.vgui-scroll-region--custom {
+.vgui-scroll-region--drawn {
   display: flex;
   overflow: hidden;
 }
 
-.vgui-scroll-region--custom.vgui-scroll-region--vertical {
+.vgui-scroll-region--drawn.vgui-scroll-region--vertical {
   flex-direction: row;
 }
 
-.vgui-scroll-region--custom.vgui-scroll-region--horizontal {
+.vgui-scroll-region--drawn.vgui-scroll-region--horizontal {
   flex-direction: column;
 }
 
 /*
- * The custom tree duplicates a native affordance, which is the only reason
+ * The drawn tree duplicates a native affordance, which is the only reason
  * `aria-hidden="true"` is honest on it; that in turn means the native bar it
  * duplicates must go, and the region must stay reachable by keyboard. The outer
  * region keeps a tabindex and the browser scrolls the focused box on arrow keys,
  * PageUp/PageDown, Home/End and Space, which is what docs/components/Scrollbar.md
- * requires of the custom path.
+ * requires of the drawn path.
  */
-.vgui-scroll-region--custom .vgui-scroll-region__content {
+.vgui-scroll-region--drawn .vgui-scroll-region__content {
   flex: 1 1 auto;
   min-width: 0;
   min-height: 0;
@@ -167,7 +121,7 @@
   scrollbar-width: none;
 }
 
-.vgui-scroll-region--custom .vgui-scroll-region__content::-webkit-scrollbar {
+.vgui-scroll-region--drawn .vgui-scroll-region__content::-webkit-scrollbar {
   width: 0;
   height: 0;
 }
@@ -178,7 +132,7 @@
   flex: 0 0 auto;
   display: flex;
   flex-direction: column;
-  inline-size: var(--vgui-scrollbar-width, 19px);
+  inline-size: var(--vgui-scrollbar-size, 18px);
   padding: 0 3px 1px 0;
   cursor: default;
 }
@@ -187,7 +141,7 @@
 .vgui-scrollbar[data-orientation='horizontal'] {
   flex-direction: row;
   inline-size: auto;
-  block-size: var(--vgui-scrollbar-width, 19px);
+  block-size: var(--vgui-scrollbar-size, 18px);
   padding: 1px 1px 3px 0;
 }
 

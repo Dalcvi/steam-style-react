@@ -8,6 +8,7 @@ import type {
 } from 'react'
 
 import './Splitter.css'
+import '../../styles/scrollbars.css'
 
 /** Arrow-key nudge in pixels; `Shift` drops to a single pixel. */
 const STEP = 10
@@ -273,7 +274,7 @@ export const Splitter = forwardRef<HTMLDivElement, SplitterProps>(function Split
       style={{ ...sizeStyle, ...style }}
       {...rest}
     >
-      <div className="vgui-splitter__pane vgui-splitter__pane--first">{first}</div>
+      <div className="vgui-splitter__pane vgui-splitter__pane--first vgui-scroll-surface">{first}</div>
       <div
         className="vgui-splitter__handle"
         role="separator"
@@ -298,7 +299,7 @@ export const Splitter = forwardRef<HTMLDivElement, SplitterProps>(function Split
       >
         <span className="vgui-splitter__handle-grip" aria-hidden="true" />
       </div>
-      <div className="vgui-splitter__pane vgui-splitter__pane--second">{second}</div>
+      <div className="vgui-splitter__pane vgui-splitter__pane--second vgui-scroll-surface">{second}</div>
     </div>
   )
 })

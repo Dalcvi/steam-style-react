@@ -20,7 +20,7 @@ const meta = {
   },
   argTypes: {
     orientation: { control: 'inline-radio', options: ['vertical', 'horizontal'] },
-    variant: { control: 'inline-radio', options: ['native', 'custom'] },
+    variant: { control: 'inline-radio', options: ['drawn', 'native'] },
     thickness: { control: 'text' },
     alwaysVisible: { control: 'boolean' },
     disabled: { control: 'boolean' },
@@ -39,11 +39,12 @@ const meta = {
 export default meta
 type Story = StoryObj<typeof meta>
 
-export const Native: Story = {}
+/** `drawn` is the default: the button/gutter/thumb tree, byte-identical everywhere. */
+export const Default: Story = {}
 
-/** The pressed bevel is WebKit-only, so this path is the last resort. */
-export const Custom: Story = {
-  args: { variant: 'custom' },
+/** `native` skins the platform's own bar — the fallback, not the reference. */
+export const Native: Story = {
+  args: { variant: 'native' },
 }
 
 export const Horizontal: Story = {
@@ -61,15 +62,15 @@ export const AlwaysVisible: Story = {
 }
 
 export const Disabled: Story = {
-  args: { variant: 'custom', disabled: true },
+  args: { disabled: true },
 }
 
-/** The 19px bar against the 12px override, side by side. */
+/** The default 18px bar against the 12px override, side by side. */
 export const Thickness: Story = {
   render: (args) => (
     <div style={{ display: 'flex', gap: 16 }}>
-      <Scrollbar {...args} variant="custom" />
-      <Scrollbar {...args} variant="custom" thickness={12} />
+      <Scrollbar {...args} />
+      <Scrollbar {...args} thickness={12} />
     </div>
   ),
 }

@@ -1,6 +1,7 @@
 import { forwardRef, useEffect, useRef, useState } from 'react'
 import type { ChangeEvent, HTMLAttributes, KeyboardEvent, ReactNode } from 'react'
 import './Select.css'
+import '../../styles/scrollbars.css'
 
 export interface SelectOption {
   /** Value committed to `value` when this option is chosen. */
@@ -348,7 +349,7 @@ export const Select = forwardRef<HTMLDivElement, SelectProps>(function Select(
       {open ? (
         <ul
           id={ids.list}
-          className="vgui-select__list"
+          className="vgui-select__list vgui-scroll-surface"
           role="listbox"
           aria-label={ariaLabel}
           aria-labelledby={ariaLabelledBy}
