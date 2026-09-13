@@ -154,10 +154,25 @@ version published by hand, before trusted publishing existed.
    *Allow GitHub Actions to create and approve pull requests***, otherwise the
    workflow cannot open the “chore: version packages” pull request.
 
-> **Note:** commits and pull requests created with the default `GITHUB_TOKEN`
-> do not trigger other workflows, so the “chore: version packages” PR shows no
-> CI checks. If CI is a required status check on `main`, pass a personal access
-> token to the action's `github-token` input so that PR triggers CI.
+> **Note:** the “chore: version packages” PR is opened with the default
+> `GITHUB_TOKEN`, which normally suppresses downstream workflows — but once
+> **Allow GitHub Actions to create and approve pull requests** is enabled, that
+> PR *does* trigger CI. It is therefore safe to require CI as a status check on
+> `main`.
+
+### Release safeguards
+
+* `release.yml` cannot release code CI has not validated, and it cannot be
+  triggered by a non-admin: the first step re-reads the triggering actor's role
+  from the collaborators API and fails unless it is `admin`. Both the automatic
+  `workflow_run` and a manual `workflow_dispatch` go through the same check, so a
+  contributor with write access can merge code but never cause a publish.
+* `.github/CODEOWNERS` names `@Dalcvi` as the owner of everything, with explicit
+  entries for `release.yml` and `.changeset/`. Code ownership only becomes a gate
+  once a branch ruleset turns on **Require review from Code Owners**.
+* PR titles must follow
+  [Conventional Commits](https://www.conventionalcommits.org) — see
+  `.github/copilot-instructions.md`.
 
 ## Credits
 
