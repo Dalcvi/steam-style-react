@@ -124,8 +124,8 @@ Releases are managed by [Changesets](https://changesets.dev) — the version in
    creates a GitHub release.
 
 Nothing is published while no changeset exists, so `main` can sit unreleased
-indefinitely — with one exception: `@dalcvil/steam-green-react` is not on the
-registry yet, so the first release run publishes the current `0.1.0` directly.
+indefinitely. Releases are driven entirely by changesets — `0.1.0` was the one
+version published by hand, before trusted publishing existed.
 
 ### First-time setup
 
@@ -135,10 +135,18 @@ registry yet, so the first release run publishes the current `0.1.0` directly.
    default runs a Jekyll build that serves the README instead. Once the source
    is set, the Pages workflow publishes Storybook to
    `https://<owner>.github.io/<repo>/`.
-2. **npm publishing** — create an npm **Automation** token for the `@dalcvil`
-   scope and store it as the repository secret `NPM_TOKEN`
-   (**Settings → Secrets and variables → Actions**). The release workflow
-   exports it as `NODE_AUTH_TOKEN`, which `actions/setup-node` picks up.
+2. **npm publishing** — add a **trusted publisher** on npmjs.com
+   (**Packages → `@dalcvil/steam-green-react` → Settings → Trusted publishing →
+   GitHub Actions**) with repository `Dalcvi/steam-style-react`, workflow
+   `release.yml`, and *Environment* left blank. Let the connection perform a
+   direct publish, not a stage-only one — the release workflow publishes
+   unattended, so stage-only would leave every version waiting on manual 2FA
+   approval.
+
+   No token and no repository secret are involved: the workflow authenticates
+   over OIDC, and npm attaches provenance automatically. Once a release has
+   succeeded, tighten **Settings → Publishing access** to *Require two-factor
+   authentication and disallow tokens*.
 3. **Allow the version PR** — enable **Settings → Actions → General →
    *Allow GitHub Actions to create and approve pull requests***, otherwise the
    workflow cannot open the “chore: version packages” pull request.

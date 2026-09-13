@@ -12,9 +12,24 @@ name: Release
 #
 #   pnpm changeset
 #
-# Requires an npm Automation token in the repository secret NPM_TOKEN
-# (Settings -> Secrets and variables -> Actions) and the "Allow GitHub Actions
-# to create and approve pull requests" option enabled under Actions -> General.
+# Publishing authenticates with npm trusted publishing (OIDC): there is no
+# NPM_TOKEN secret and no long-lived credential anywhere in this workflow. The
+# package carries a trusted publisher on npmjs.com
+# (Packages -> @dalcvil/steam-green-react -> Settings -> Trusted publishing)
+# that must match exactly:
+#
+#   Publisher   GitHub Actions
+#   Repository  Dalcvi/steam-style-react
+#   Workflow    release.yml
+#   Environment (blank - this job declares none)
+#
+# The connection has to permit a direct `npm publish`. `pnpm publish` runs
+# unattended here, so a stage-only connection would park every release in the
+# staged-publishing queue for manual 2FA approval instead of shipping it.
+#
+# Also enable "Allow GitHub Actions to create and approve pull requests" under
+# Settings -> Actions -> General, otherwise the version pull request cannot be
+# opened.
 
 on:
   push:
@@ -63,5 +78,6 @@ jobs:
           pr-title: "chore: version packages"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          # The npm CLI attaches provenance automatically once OIDC is in use.
+          # pnpm only does so when asked, so keep this explicit.
           NPM_CONFIG_PROVENANCE: "true"
