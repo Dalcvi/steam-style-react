@@ -166,12 +166,12 @@ describe('ScrollArea', () => {
     })
   })
 
-  describe('custom scrollbar', () => {
+  describe('drawn scrollbar', () => {
     it('renders a themed scrollbar instead of the platform one', () => {
-      const { container } = render(<ScrollArea customScrollbar>content</ScrollArea>)
+      const { container } = render(<ScrollArea>content</ScrollArea>)
 
       const root = container.querySelector('.vgui-scroll-area') as HTMLElement
-      expect(root).toHaveClass('vgui-scroll-area--custom')
+      expect(root).toHaveClass('vgui-scroll-area--drawn')
 
       const bar = root.querySelector('.vgui-scroll-area__scrollbar--vertical') as HTMLElement
       expect(bar).toHaveAttribute('aria-hidden', 'true')
@@ -182,7 +182,7 @@ describe('ScrollArea', () => {
 
     it('renders a horizontal bar for the horizontal axis and both for both', () => {
       const { container, unmount } = render(
-        <ScrollArea customScrollbar axis="horizontal">
+        <ScrollArea axis="horizontal">
           content
         </ScrollArea>,
       )
@@ -193,7 +193,7 @@ describe('ScrollArea', () => {
       unmount()
 
       const both = render(
-        <ScrollArea customScrollbar axis="both">
+        <ScrollArea axis="both">
           content
         </ScrollArea>,
       )
@@ -202,17 +202,22 @@ describe('ScrollArea', () => {
     })
 
     it('sizes the thumb to the visible proportion of the content', () => {
-      const { container } = render(<ScrollArea customScrollbar>content</ScrollArea>)
+      const { container } = render(<ScrollArea>content</ScrollArea>)
 
       stubScroll(viewportOf(container), { top: 0, clientHeight: 200, scrollHeight: 500 })
 
       expect(container.querySelector('.vgui-scroll-area__thumb')).toHaveStyle({ height: '40%' })
     })
 
-    it('does not render a custom scrollbar by default', () => {
-      const { container } = render(<ScrollArea>content</ScrollArea>)
+    it('falls back to the platform bar in the native variant', () => {
+      const { container } = render(
+        <ScrollArea variant="native">content</ScrollArea>,
+      )
 
-      expect(container.querySelector('.vgui-scroll-area__scrollbar')).not.toBeInTheDocument()
+      const root = container.querySelector('.vgui-scroll-area') as HTMLElement
+      expect(root).toHaveClass('vgui-scroll-area--native')
+      expect(root.querySelector('.vgui-scroll-area__scrollbar')).not.toBeInTheDocument()
+      expect(viewportOf(container)).toHaveClass('vgui-scroll-surface')
     })
   })
 
@@ -230,7 +235,7 @@ describe('ScrollArea', () => {
 
   it('has no accessibility violations', async () => {
     const { container } = render(
-      <ScrollArea inset customScrollbar aria-label="Server list">
+      <ScrollArea inset variant="native" aria-label="Server list">
         <ul>
           <li>Counter-Strike: Source</li>
         </ul>

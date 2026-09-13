@@ -18,8 +18,6 @@
   max-height: 100%;
   min-height: 0;
   min-width: 0;
-  scrollbar-color: var(--vgui-surface) var(--vgui-surface-light); /* Firefox */
-  scrollbar-width: auto;
 }
 
 .vgui-scroll-area__viewport:focus-visible {
@@ -49,42 +47,6 @@
   .vgui-scroll-area__viewport {
     scroll-behavior: smooth;
   }
-}
-
-/* WebKit/Blink: the full 18px scrollbar with arrow buttons. */
-.vgui-scroll-area__viewport::-webkit-scrollbar,
-.vgui-scroll-area__viewport::-webkit-scrollbar-corner {
-  width: var(--vgui-scrollbar-size);
-  height: var(--vgui-scrollbar-size);
-  background-color: var(--vgui-surface-light);
-}
-
-.vgui-scroll-area__viewport::-webkit-scrollbar-thumb {
-  background-color: var(--vgui-surface);
-  border-top: var(--vgui-bevel-width) solid var(--vgui-bevel-light);
-  border-left: var(--vgui-bevel-width) solid var(--vgui-bevel-light);
-  border-bottom: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
-  border-right: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
-}
-
-.vgui-scroll-area__viewport::-webkit-scrollbar-button {
-  width: var(--vgui-scrollbar-size);
-  height: var(--vgui-scrollbar-size);
-  background-color: var(--vgui-surface);
-  border-top: var(--vgui-bevel-width) solid var(--vgui-bevel-light);
-  border-left: var(--vgui-bevel-width) solid var(--vgui-bevel-light);
-  border-bottom: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
-  border-right: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
-}
-
-/* The native scrollbar buttons keep the bevel plate; the chevron glyph itself is
-   only painted on the custom path, because a scrollbar pseudo-element cannot
-   host a `::before`. */
-.vgui-scroll-area__viewport::-webkit-scrollbar-button:active {
-  border-top-color: var(--vgui-bevel-dark);
-  border-left-color: var(--vgui-bevel-dark);
-  border-bottom-color: var(--vgui-bevel-light);
-  border-right-color: var(--vgui-bevel-light);
 }
 
 /* Shadows sit on the leading and trailing edge of the scrollable axis. A
@@ -144,23 +106,29 @@
   right: 0;
 }
 
-/* --- Custom scrollbar (the themed stand-in for the Scrollbar component) --- */
-.vgui-scroll-area--custom .vgui-scroll-area__viewport {
+/* --- Drawn scrollbar (the themed stand-in for the Scrollbar component) ---
+   The drawn bar is the default. The platform bar is hidden outright so that a
+   `--drawn` region measures and scrolls exactly the same everywhere, and the
+   bar itself is painted by the markup in `ScrollArea.tsx`. `--native` instead
+   hides nothing and puts `.vgui-scroll-surface` on the viewport, which is what
+   `styles/scrollbars.css` skips the markup for; that is the only difference
+   between the two, so neither path pays for the other's selectors. */
+.vgui-scroll-area--drawn .vgui-scroll-area__viewport {
   scrollbar-width: none;
 }
 
-.vgui-scroll-area--custom .vgui-scroll-area__viewport::-webkit-scrollbar {
+.vgui-scroll-area--drawn .vgui-scroll-area__viewport::-webkit-scrollbar {
   display: none;
 }
 
-.vgui-scroll-area--custom {
+.vgui-scroll-area--drawn {
   grid-template:
     minmax(0, 1fr)
     / minmax(0, 1fr) auto;
   grid-template-areas: 'viewport scrollbar-y';
 }
 
-.vgui-scroll-area--custom.vgui-scroll-area--horizontal {
+.vgui-scroll-area--drawn.vgui-scroll-area--horizontal {
   grid-template:
     minmax(0, 1fr) auto
     / minmax(0, 1fr);
@@ -169,7 +137,7 @@
     'scrollbar-x';
 }
 
-.vgui-scroll-area--custom.vgui-scroll-area--both {
+.vgui-scroll-area--drawn.vgui-scroll-area--both {
   grid-template:
     minmax(0, 1fr) auto
     / minmax(0, 1fr) auto;
@@ -178,16 +146,24 @@
     'scrollbar-x corner';
 }
 
-.vgui-scroll-area--custom.vgui-scroll-area--both::after {
+.vgui-scroll-area--drawn.vgui-scroll-area--both::after {
   content: '';
   grid-area: corner;
-  background-color: var(--vgui-surface-light);
+  background-color: var(--vgui-scrollbar-gutter, var(--vgui-surface-light));
+}
+
+/* Every box below is sized by its own width/border rather than by `content-box`,
+   so the composited bar measures the full 18px `--vgui-scrollbar-size`. */
+.vgui-scroll-area__scrollbar,
+.vgui-scroll-area__button,
+.vgui-scroll-area__thumb {
+  box-sizing: border-box;
 }
 
 .vgui-scroll-area__scrollbar {
   display: flex;
   flex-direction: column;
-  background-color: var(--vgui-surface-light);
+  background-color: var(--vgui-scrollbar-gutter, var(--vgui-surface-light));
 }
 
 .vgui-scroll-area__scrollbar--vertical {
@@ -205,9 +181,9 @@
   flex: 0 0 auto;
   display: grid;
   place-items: center;
-  width: var(--vgui-scrollbar-size);
-  height: var(--vgui-scrollbar-size);
-  background-color: var(--vgui-surface);
+  width: var(--vgui-scrollbar-button-size, var(--vgui-scrollbar-size));
+  height: var(--vgui-scrollbar-button-size, var(--vgui-scrollbar-size));
+  background-color: var(--vgui-scrollbar-thumb, var(--vgui-surface));
   border-top: var(--vgui-bevel-width) solid var(--vgui-bevel-light);
   border-left: var(--vgui-bevel-width) solid var(--vgui-bevel-light);
   border-bottom: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
@@ -216,9 +192,9 @@
 
 .vgui-scroll-area__button::before {
   content: '';
-  width: 7px;
-  height: 4px;
-  background-color: var(--vgui-clay-glyph);
+  width: var(--vgui-scrollbar-glyph-width, 7px);
+  height: var(--vgui-scrollbar-glyph-height, 4px);
+  background-color: var(--vgui-scrollbar-glyph-color, #a0aa95);
   clip-path: polygon(50% 0, 100% 100%, 0 100%);
 }
 
@@ -227,8 +203,8 @@
 }
 
 .vgui-scroll-area__scrollbar--horizontal .vgui-scroll-area__button::before {
-  width: 4px;
-  height: 7px;
+  width: var(--vgui-scrollbar-glyph-height, 4px);
+  height: var(--vgui-scrollbar-glyph-width, 7px);
   clip-path: polygon(100% 0, 0 50%, 100% 100%);
 }
 
@@ -239,7 +215,7 @@
 .vgui-scroll-area__track {
   position: relative;
   flex: 1 1 auto;
-  background-color: var(--vgui-surface-light);
+  background-color: var(--vgui-scrollbar-gutter, var(--vgui-surface-light));
 }
 
 .vgui-scroll-area__thumb {
@@ -247,7 +223,7 @@
   top: 0;
   left: 0;
   right: 0;
-  background-color: var(--vgui-surface);
+  background-color: var(--vgui-scrollbar-thumb, var(--vgui-surface));
   border-top: var(--vgui-bevel-width) solid var(--vgui-bevel-light);
   border-left: var(--vgui-bevel-width) solid var(--vgui-bevel-light);
   border-bottom: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);

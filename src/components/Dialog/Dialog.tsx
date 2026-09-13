@@ -13,6 +13,7 @@ import {
 import { Window } from '../Window'
 import type { WindowProps } from '../Window'
 import './Dialog.css'
+import '../../styles/scrollbars.css'
 
 export interface DialogProps extends Omit<WindowProps, 'title' | 'onAction'> {
   /** Dialog title, shown in the shared title bar. */
@@ -227,7 +228,7 @@ export const Dialog = forwardRef<HTMLDivElement, DialogProps>(function Dialog(
         onKeyDown={handleKeyDown}
         title={<span id={titleId}>{title}</span>}
       >
-        <div className="vgui-dialog__body" id={bodyId}>
+        <div className="vgui-dialog__body vgui-scroll-surface" id={bodyId}>
           {children}
         </div>
         {actions ? (

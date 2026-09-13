@@ -2,6 +2,7 @@ import { forwardRef, useCallback, useEffect, useRef } from 'react'
 import type { CSSProperties, HTMLAttributes } from 'react'
 
 import './Console.css'
+import '../../styles/scrollbars.css'
 
 export type ConsoleLineKind = 'text' | 'error' | 'history'
 
@@ -69,7 +70,7 @@ export const Console = forwardRef<HTMLDivElement, ConsoleProps>(function Console
     node.scrollTop = node.scrollHeight
   }, [follow, newestId, retained.length])
 
-  const classes = ['vgui-console']
+  const classes = ['vgui-console', 'vgui-scroll-surface']
   if (errorPrefix === '') classes.push('vgui-console--no-error-prefix')
   if (className) classes.push(className)
 

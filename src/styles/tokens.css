@@ -93,7 +93,6 @@
   --vgui-control-height: 25px;
   --vgui-button-min-width: 75px;
   --vgui-checkbox-size: 15px;
-  --vgui-scrollbar-size: 18px;
   --vgui-titlebar-height: 18px;
   --vgui-frame-control-size: 20px;
   --vgui-resize-grip: 12px;
@@ -110,6 +109,24 @@
   /* WCAG 2.5.8 minimum target size. Valve's 18px `--small` chrome falls below
    * it, so those controls grow an invisible hit area to this. */
   --vgui-min-target-size: 24px;
+
+  /* --- Scrollbar (§6, §7)
+   * The bar is 18px with an 18px button at each end, and it is drawn three
+   * ways: the `Scrollbar` component's button/gutter/thumb tree, `ScrollArea`'s
+   * lighter copy of it, and the platform skin in `styles/scrollbars.css` that
+   * every self-scrolling component opts into with `.vgui-scroll-surface`. All
+   * three read these tokens, so one override restyles every bar on the page.
+   *
+   * Note the inversion people get backwards: the *gutter* is the light green
+   * and the *thumb* is the standard surface green, not the other way round. */
+  --vgui-scrollbar-size: 18px;
+  --vgui-scrollbar-button-size: 18px;
+  --vgui-scrollbar-glyph-width: 7px;
+  --vgui-scrollbar-glyph-height: 4px;
+  --vgui-scrollbar-glyph-color: var(--vgui-text-muted);
+  --vgui-scrollbar-gutter: var(--vgui-surface-light);
+  --vgui-scrollbar-thumb: var(--vgui-surface);
+  --vgui-scrollbar-corner: var(--vgui-surface-light);
 
   /* --- Focus (§4)
    * Valve's literal rings are invisible on these surfaces (1.87:1), so the

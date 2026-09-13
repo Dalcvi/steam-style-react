@@ -8,6 +8,7 @@ import type {
 } from 'react'
 
 import './List.css'
+import '../../styles/scrollbars.css'
 
 export interface ListRow {
   /** Stable identity; also the React key. */
@@ -374,7 +375,7 @@ export const List = forwardRef<HTMLDivElement, ListProps>(function List(props, f
 
   return (
     <div ref={forwardedRef} className={classes.join(' ')} style={listStyle} {...rest}>
-      <div className="vgui-list__interior">
+      <div className="vgui-list__interior vgui-scroll-surface">
         {isEmpty ? (
           // An empty `listbox` is itself an `aria-required-children` violation,
           // so the empty state drops the widget and announces through a status

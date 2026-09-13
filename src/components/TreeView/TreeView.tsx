@@ -8,6 +8,7 @@ import type {
 } from 'react'
 
 import './TreeView.css'
+import '../../styles/scrollbars.css'
 
 export interface TreeNode {
   /** Stable identity; also the React key. */
@@ -502,7 +503,7 @@ export const TreeView = forwardRef<HTMLDivElement, TreeViewProps>(function TreeV
         // An empty `tree` is itself an `aria-required-children` violation, so
         // the empty state drops the widget and announces through a status
         // region instead of a dangling role.
-        <div className="vgui-tree__subpanel">
+        <div className="vgui-tree__subpanel vgui-scroll-surface">
           <p className="vgui-tree__empty" role="status">
             {emptyMessage}
           </p>
@@ -510,7 +511,7 @@ export const TreeView = forwardRef<HTMLDivElement, TreeViewProps>(function TreeV
       ) : (
         <>
           <div
-            className="vgui-tree__subpanel"
+            className="vgui-tree__subpanel vgui-scroll-surface"
             role="tree"
             aria-label={ariaLabelledBy ? undefined : (ariaLabel ?? label ?? 'Tree')}
             aria-labelledby={ariaLabelledBy}

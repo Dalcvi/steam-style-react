@@ -39,16 +39,18 @@ raised bevel. Most modern themes do the opposite.
 ```
 
 The viewport is a plain `overflow: auto` element. The component's value is the
-container query-free layout, the shadow affordances, and the decision of whether
-to use the native or the custom scrollbar.
+container query-free layout, the shadow affordances, and the choice between the
+two ways to paint the bar (`variant`): the drawn `Scrollbar` tree, which is the
+default, or the platform's own bar wearing the Green Steam skin, which is the
+fallback for when the extra markup is unwanted.
 
 ## Variants
 
 | Variant | Class | Use |
 | --- | --- | --- |
-| Default | — | Native `::-webkit-scrollbar` styling, no arrow glyphs in Firefox |
+| Drawn (default) | `--drawn` | Renders the `<Scrollbar>` tree: identical in every engine, arrow glyphs included |
+| Native | `--native` | Skins the platform bar via `.vgui-scroll-surface`; Firefox loses the bevel and the arrows |
 | Inset | `--inset` | Recessed bevel — a list interior |
-| Custom | `customScrollbar` prop | Renders the `<Scrollbar>` component; full fidelity everywhere |
 | Horizontal | `--horizontal` | Only a horizontal scrollbar |
 | Both | `--both` | Both axes |
 | No shadows | `--no-shadows` | Disable the scroll affordance shadows |
@@ -68,8 +70,9 @@ to use the native or the custom scrollbar.
 | Token | Where |
 | --- | --- |
 | `--vgui-surface-dark` `#3E4637` | Viewport background for `--inset` |
-| `--vgui-surface-light` `#5A6A50` | Native scrollbar gutter |
-| `--vgui-surface` `#4C5844` | Native scrollbar thumb |
+| `--vgui-scrollbar-gutter` `#5A6A50` | Scrollbar gutter (the *light* green) |
+| `--vgui-scrollbar-thumb` `#4C5844` | Scrollbar thumb and arrow buttons |
+| `--vgui-scrollbar-size` `18px` | Bar thickness on both axes |
 | `--vgui-bevel-light` `#899281` | Thumb and button raised top/left |
 | `--vgui-bevel-dark` `#292D23` | Thumb and button raised bottom/right |
 | `--vgui-bevel-dark` `#292D23` | Scroll shadows |
@@ -86,7 +89,12 @@ to use the native or the custom scrollbar.
 .vgui-scroll-area__viewport {
   overflow: auto;
   max-height: 100%;
-  scrollbar-color: var(--vgui-surface) var(--vgui-surface-light);  /* Firefox */
+}
+
+/* The native path: the shared skin from `styles/scrollbars.css`, applied by
+   putting `.vgui-scroll-surface` on the viewport. */
+.vgui-scroll-surface {
+  scrollbar-color: var(--vgui-scrollbar-thumb) var(--vgui-scrollbar-gutter);  /* Firefox */
   scrollbar-width: auto;
 }
 
@@ -99,14 +107,14 @@ to use the native or the custom scrollbar.
 }
 
 /* WebKit/Blink: the full 18px scrollbar with arrow buttons. */
-.vgui-scroll-area__viewport::-webkit-scrollbar,
-.vgui-scroll-area__viewport::-webkit-scrollbar-corner {
+.vgui-scroll-surface::-webkit-scrollbar,
+.vgui-scroll-surface::-webkit-scrollbar-corner {
   width: 18px;
   height: 18px;
   background-color: var(--vgui-surface-light);
 }
 
-.vgui-scroll-area__viewport::-webkit-scrollbar-thumb {
+.vgui-scroll-surface::-webkit-scrollbar-thumb {
   background-color: var(--vgui-surface);
   border-top: 1px solid var(--vgui-bevel-light);
   border-left: 1px solid var(--vgui-bevel-light);
@@ -114,7 +122,7 @@ to use the native or the custom scrollbar.
   border-right: 1px solid var(--vgui-bevel-dark);
 }
 
-.vgui-scroll-area__viewport::-webkit-scrollbar-button {
+.vgui-scroll-surface::-webkit-scrollbar-button {
   width: 18px;
   height: 18px;
   background-color: var(--vgui-surface);
@@ -124,24 +132,27 @@ to use the native or the custom scrollbar.
   border-right: 1px solid var(--vgui-bevel-dark);
 }
 
-.vgui-scroll-area__viewport::-webkit-scrollbar-button:active {
+.vgui-scroll-surface::-webkit-scrollbar-button:active {
   border-top-color: var(--vgui-bevel-dark);
   border-left-color: var(--vgui-bevel-dark);
   border-bottom-color: var(--vgui-bevel-light);
   border-right-color: var(--vgui-bevel-light);
 }
 
-.vgui-scroll-area__viewport::-webkit-scrollbar-button:vertical:decrement {
+.vgui-scroll-surface::-webkit-scrollbar-button:vertical:decrement {
   background-image: url("data:image/svg+xml,…"); /* up arrow */
 }
-.vgui-scroll-area__viewport::-webkit-scrollbar-button:vertical:increment {
+.vgui-scroll-surface::-webkit-scrollbar-button:vertical:increment {
   background-image: url("data:image/svg+xml,…"); /* down arrow */
 }
 ```
 
-The native path is one-way: **there is no Firefox equivalent for scrollbar
-buttons.** `scrollbar-color` recolours the track and thumb and nothing else.
-That is the entire reason the `customScrollbar` prop exists.
+The platform path is one-way: **there is no Firefox equivalent for scrollbar
+buttons.** `scrollbar-color` recolours the track and the thumb and stops there,
+so the bevel and the arrows are lost in Firefox and only there. That gap is why
+the drawn tree is the default and the platform bar the fallback, rather than the
+other way round. It is also why the glyph above is four stacked gradient layers:
+a scrollbar button has no `::before` for a `clip-path` triangle.
 
 ## React API
 
@@ -151,8 +162,12 @@ export interface ScrollAreaProps extends HTMLAttributes<HTMLDivElement> {
   inset?: boolean
   /** Which axes may scroll. */
   axis?: 'vertical' | 'horizontal' | 'both'
-  /** Render the custom `Scrollbar` instead of the platform one. */
-  customScrollbar?: boolean
+  /**
+   * Which scrollbar to paint. `"drawn"` renders the 18px Green Steam bar, which
+   * looks the same in every browser; `"native"` drops the extra markup and skins
+   * the platform's own bar instead. Defaults to `"drawn"`.
+   */
+  variant?: 'drawn' | 'native'
   /** Maximum height of the viewport; omit to fill the parent. */
   maxHeight?: number | string
   /** Show the fade affordances at the scrollable edges. */
@@ -178,8 +193,12 @@ practice but the intent is clearer split out.
 - **Never `outline: none` on a focused viewport.** Replace the ring, don't
   remove it.
 - The 18px scrollbar is well above the 24×24 target minimum on one axis; fine.
-- **Keyboard scrolling already works** on a focused overflow container: arrows,
-  `Page Up`/`Page Down`, `Home`/`End`, `Space`. Do not reimplement it.
+- **Keyboard scrolling already works** on a focused `overflow: auto` container:
+  arrows, `Page Up`/`Page Down`, `Home`/`End`, `Space`. That is the `--native`
+  path, and it needs no help. The drawn path is different: its region hides its
+  own overflow and the inner box scrolls, so there is no scroll container for
+  the engine to move and `Scrollbar` maps those keys onto the scroller itself.
+  Keyboard users must still be able to reach every position the thumb can.
 - `scroll-behavior: smooth` must sit inside
   `@media (prefers-reduced-motion: no-preference)`. Vestibular disorders make
   smooth scrolling genuinely nauseating.
@@ -213,17 +232,17 @@ fine here.
   </ScrollArea>
 </Panel>
 
-<ScrollArea axis="both" customScrollbar maxHeight={240}>
+<ScrollArea axis="both" maxHeight={240}>
+  <pre>{longLog}</pre>
+</ScrollArea>
+
+<ScrollArea axis="both" variant="native" maxHeight={240}>
   <pre>{longLog}</pre>
 </ScrollArea>
 ```
 
 ## Open questions
 
-- The **Firefox fidelity gap** is structural, not a bug. Either accept a
-  scrollbar without arrow buttons there, or always use `customScrollbar`. Which
-  is the better default for this library is a product decision that has not been
-  made.
 - Valve's `ScrollPanel` also supported `ScrollBar` "auto-hide" behaviour, where
   the scrollbar faded in on scroll. `steam.styles` does not describe it, so it is
   not specified here.

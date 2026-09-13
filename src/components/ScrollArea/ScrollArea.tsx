@@ -10,14 +10,19 @@ import {
   type UIEvent,
 } from 'react'
 import './ScrollArea.css'
+import '../../styles/scrollbars.css'
 
 export interface ScrollAreaProps extends HTMLAttributes<HTMLDivElement> {
   /** Recess the viewport to the VGUI list-interior look. */
   inset?: boolean
   /** Which axes may scroll. */
   axis?: 'vertical' | 'horizontal' | 'both'
-  /** Render a themed 18px scrollbar instead of the platform one. */
-  customScrollbar?: boolean
+  /**
+   * Which scrollbar to paint. `"drawn"` renders the 18px Green Steam bar, which
+   * looks the same in every browser; `"native"` drops the extra markup and skins
+   * the platform's own bar instead. Defaults to `"drawn"`.
+   */
+  variant?: 'drawn' | 'native'
   /** Maximum height of the viewport; omit to fill the parent. */
   maxHeight?: number | string
   /** Show the fade affordances at the scrollable edges. */
@@ -79,12 +84,12 @@ export const ScrollArea = forwardRef<HTMLDivElement, ScrollAreaProps>(function S
     axis = 'vertical',
     children,
     className,
-    customScrollbar = false,
     focusable,
     inset = false,
     maxHeight,
     onScrollPositionChange,
     shadows = true,
+    variant = 'drawn',
     ...rest
   },
   ref,
@@ -103,6 +108,7 @@ export const ScrollArea = forwardRef<HTMLDivElement, ScrollAreaProps>(function S
 
   const isFocusable = focusable ?? autoFocusable
   const horizontal = axis === 'horizontal'
+  const drawn = variant === 'drawn'
 
   const measure = useCallback(() => {
     const node = viewportRef.current
@@ -173,7 +179,7 @@ export const ScrollArea = forwardRef<HTMLDivElement, ScrollAreaProps>(function S
         'vgui-scroll-area',
         axis === 'vertical' ? null : `vgui-scroll-area--${axis}`,
         inset ? 'vgui-scroll-area--inset' : null,
-        customScrollbar ? 'vgui-scroll-area--custom' : null,
+        drawn ? 'vgui-scroll-area--drawn' : 'vgui-scroll-area--native',
         shadows ? null : 'vgui-scroll-area--no-shadows',
         className,
       ]
@@ -182,7 +188,11 @@ export const ScrollArea = forwardRef<HTMLDivElement, ScrollAreaProps>(function S
     >
       <div
         ref={viewportRef}
-        className="vgui-scroll-area__viewport"
+        className={
+          drawn
+            ? 'vgui-scroll-area__viewport'
+            : 'vgui-scroll-area__viewport vgui-scroll-surface'
+        }
         style={viewportStyle}
         tabIndex={isFocusable ? 0 : undefined}
         role={isFocusable ? 'region' : undefined}
@@ -202,12 +212,8 @@ export const ScrollArea = forwardRef<HTMLDivElement, ScrollAreaProps>(function S
         className="vgui-scroll-area__shadow vgui-scroll-area__shadow--bottom"
         data-visible={metrics.scrollable && !metrics.atEnd ? 'true' : undefined}
       />
-      {customScrollbar && axis !== 'horizontal'
-        ? scrollbar('vertical', metrics.thumbY)
-        : null}
-      {customScrollbar && axis !== 'vertical'
-        ? scrollbar('horizontal', metrics.thumbX)
-        : null}
+      {drawn && axis !== 'horizontal' ? scrollbar('vertical', metrics.thumbY) : null}
+      {drawn && axis !== 'vertical' ? scrollbar('horizontal', metrics.thumbX) : null}
     </div>
   )
 })

@@ -9,6 +9,7 @@ import type {
 } from 'react'
 
 import './Table.css'
+import '../../styles/scrollbars.css'
 
 export interface TableSort {
   /** Column the rows are ordered by. */
@@ -556,7 +557,7 @@ export function Table<Row>(props: TableProps<Row>) {
         })}
       </div>
 
-      <div className="vgui-table__body" role="rowgroup">
+      <div className="vgui-table__body vgui-scroll-surface" role="rowgroup">
         {isEmpty ? (
           <div className="vgui-table__row vgui-table__row--empty" role="row">
             {/*

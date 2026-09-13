@@ -2,24 +2,26 @@ import { forwardRef, useCallback, useEffect, useRef, useState } from 'react'
 import type {
   CSSProperties,
   HTMLAttributes,
+  KeyboardEvent as ReactKeyboardEvent,
   PointerEvent as ReactPointerEvent,
   UIEvent as ReactUIEvent,
 } from 'react'
 
 import './Scrollbar.css'
+import '../../styles/scrollbars.css'
 
 export interface ScrollbarProps extends HTMLAttributes<HTMLDivElement> {
   /** Scrolling axis. Defaults to `"vertical"`. */
   orientation?: 'vertical' | 'horizontal'
   /**
-   * Painting strategy. `"native"` sets `scrollbar-color` and emits no extra
-   * markup; `"custom"` renders the button/gutter/thumb tree. Defaults to
-   * `"native"`.
+   * Painting strategy. `"drawn"` renders the button/gutter/thumb tree, which
+   * looks the same in every engine; `"native"` sets `scrollbar-color` and emits
+   * no extra markup, leaving the bar to the platform. Defaults to `"drawn"`.
    */
-  variant?: 'native' | 'custom'
+  variant?: 'drawn' | 'native'
   /**
-   * Bar thickness. Defaults to `--vgui-scrollbar-width` (19px). Only honoured
-   * by the custom variant and by WebKit.
+   * Bar thickness. Defaults to `--vgui-scrollbar-size` (18px). Honoured by both
+   * variants, but the platform only paints a custom thickness in WebKit/Blink.
    */
   thickness?: number | string
   /** Reserve space for the bar even when the content does not overflow. */
@@ -53,7 +55,7 @@ export const Scrollbar = forwardRef<HTMLDivElement, ScrollbarProps>(function Scr
   {
     className,
     orientation = 'vertical',
-    variant = 'native',
+    variant = 'drawn',
     thickness,
     alwaysVisible = false,
     disabled = false,
@@ -63,6 +65,7 @@ export const Scrollbar = forwardRef<HTMLDivElement, ScrollbarProps>(function Scr
     style,
     tabIndex,
     onScroll,
+    onKeyDown,
     ...rest
   },
   forwardedRef,
@@ -72,12 +75,12 @@ export const Scrollbar = forwardRef<HTMLDivElement, ScrollbarProps>(function Scr
   const dragCleanupRef = useRef<(() => void) | null>(null)
   const [metrics, setMetrics] = useState<ScrollMetrics>(EMPTY_METRICS)
 
-  const custom = variant === 'custom'
+  const drawn = variant === 'drawn'
   const vertical = orientation === 'vertical'
 
-  // In the native path the region scrolls itself; in the custom path the inner
+  // In the native path the region scrolls itself; in the drawn path the inner
   // content does, and the bar is a flex sibling that never scrolls away.
-  const scroller = custom ? contentRef : regionRef
+  const scroller = drawn ? contentRef : regionRef
 
   const measure = useCallback(() => {
     const node = scroller.current
@@ -126,8 +129,34 @@ export const Scrollbar = forwardRef<HTMLDivElement, ScrollbarProps>(function Scr
     [measure, onScroll],
   )
 
+  const scrollByExtent = useCallback(
+    (delta: number) => {
+      const node = scroller.current
+      if (!node) return
+
+      // The engine clamps the far end to the content extent; the near end is
+      // clamped here so a negative nudge cannot park the scroller above zero.
+      if (vertical) node.scrollTop = Math.max(node.scrollTop + delta, 0)
+      else node.scrollLeft = Math.max(node.scrollLeft + delta, 0)
+      measure()
+    },
+    [measure, scroller, vertical],
+  )
+
+  const scrollToEdge = useCallback(
+    (edge: 'start' | 'end') => {
+      const node = scroller.current
+      if (!node) return
+
+      if (vertical) node.scrollTop = edge === 'start' ? 0 : node.scrollHeight
+      else node.scrollLeft = edge === 'start' ? 0 : node.scrollWidth
+      measure()
+    },
+    [measure, scroller, vertical],
+  )
+
   const step = useCallback(
-    (direction: -1 | 1) => {
+    (direction: -1 | 1, factor = 0.2) => {
       const node = scroller.current
       if (!node) return
 
@@ -135,17 +164,14 @@ export const Scrollbar = forwardRef<HTMLDivElement, ScrollbarProps>(function Scr
       const content = toExtent(vertical ? node.scrollHeight : node.scrollWidth)
       // A fifth of a viewport is a line-page; without a viewport it degrades to
       // the content or to a fixed 20px nudge, so the arrows still do something.
-      const distance = viewport > 0 ? Math.max(1, Math.round(viewport / 5)) : Math.max(1, Math.round(content / 10) || 20)
-      const current = Math.max(vertical ? node.scrollTop : node.scrollLeft, 0)
-      const max = content > viewport ? content - viewport : 0
-      const next = Math.max(current + distance * direction, 0)
+      const distance =
+        viewport > 0
+          ? Math.max(1, Math.round(viewport * factor))
+          : Math.max(1, Math.round(content / 10) || 20)
 
-      const clamped = max > 0 ? Math.min(next, max) : next
-      if (vertical) node.scrollTop = clamped
-      else node.scrollLeft = clamped
-      measure()
+      scrollByExtent(distance * direction)
     },
-    [measure, scroller, vertical],
+    [scrollByExtent, scroller, vertical],
   )
 
   const scrollToRatio = useCallback(
@@ -164,6 +190,55 @@ export const Scrollbar = forwardRef<HTMLDivElement, ScrollbarProps>(function Scr
       measure()
     },
     [measure, scroller, vertical],
+  )
+
+  const handleKeyDown = useCallback(
+    (event: ReactKeyboardEvent<HTMLDivElement>) => {
+      onKeyDown?.(event)
+
+      // Only the drawn path needs this. Its region hides its overflow and lets
+      // the inner box scroll, so the browser has no scroll container to move
+      // when the region itself holds focus; the keys it would have handled
+      // natively are mapped onto the scroller here instead.
+      if (event.defaultPrevented || !drawn) return
+
+      const back = vertical ? 'ArrowUp' : 'ArrowLeft'
+      const forward = vertical ? 'ArrowDown' : 'ArrowRight'
+
+      switch (event.key) {
+        case back:
+          event.preventDefault()
+          step(-1)
+          return
+        case forward:
+          event.preventDefault()
+          step(1)
+          return
+        case 'PageUp':
+          event.preventDefault()
+          step(-1, 1)
+          return
+        case 'PageDown':
+          event.preventDefault()
+          step(1, 1)
+          return
+        case ' ':
+          event.preventDefault()
+          step(event.shiftKey ? -1 : 1, 1)
+          return
+        case 'Home':
+          event.preventDefault()
+          scrollToEdge('start')
+          return
+        case 'End':
+          event.preventDefault()
+          scrollToEdge('end')
+          return
+        default:
+          return
+      }
+    },
+    [drawn, onKeyDown, scrollToEdge, step, vertical],
   )
 
   const handleGutterPointerDown = useCallback(
@@ -226,13 +301,14 @@ export const Scrollbar = forwardRef<HTMLDivElement, ScrollbarProps>(function Scr
   )
 
   const classes = ['vgui-scroll-region', `vgui-scroll-region--${orientation}`]
-  if (custom) classes.push('vgui-scroll-region--custom')
+  if (drawn) classes.push('vgui-scroll-region--drawn')
+  else classes.push('vgui-scroll-surface')
   if (alwaysVisible) classes.push('vgui-scroll-region--always-visible')
   if (className) classes.push(className)
 
   const regionStyle: CSSProperties = {
     ...style,
-    ...(thickness === undefined ? null : { '--vgui-scrollbar-width': cssLength(thickness) }),
+    ...(thickness === undefined ? null : { '--vgui-scrollbar-size': cssLength(thickness) }),
     ...(scrollPadding === undefined ? null : { '--vgui-scrollbar-scroll-padding': `${scrollPadding}px` }),
   } as CSSProperties
 
@@ -254,12 +330,13 @@ export const Scrollbar = forwardRef<HTMLDivElement, ScrollbarProps>(function Scr
       style={regionStyle}
       tabIndex={tabIndex ?? 0}
       data-disabled={disabled ? '' : undefined}
-      onScroll={handleScroll}
+      onKeyDown={handleKeyDown}
+      {...(drawn ? null : { onScroll: handleScroll })}
       {...rest}
     >
-      {custom ? (
+      {drawn ? (
         <>
-          <div ref={contentRef} className="vgui-scroll-region__content">
+          <div ref={contentRef} className="vgui-scroll-region__content" onScroll={handleScroll}>
             {children}
           </div>
           <div className="vgui-scrollbar" data-orientation={orientation} aria-hidden="true">

@@ -7,10 +7,14 @@ file — sixteen separate style blocks for four buttons — and the only place i
 corpus where a press is expressed by inverting the bevel primitive rather than by
 moving or recolouring anything.
 
-Because the native scrollbar belongs to the user agent, most of this document is
-about what can be reproduced in CSS (`scrollbar-color`, `::-webkit-scrollbar`) and
-what cannot. The honest summary is that the *colours* transfer completely, the
-*geometry* transfers only in WebKit, and the *arrows* do not transfer as art at all.
+Because VGUI drew the bar itself, the default component does too: a button /
+gutter / thumb tree painted from the gradients below, identical in every engine.
+The platform scrollbar cannot be made to match — its colours can be set
+(`scrollbar-color`, `::-webkit-scrollbar`), its geometry only in WebKit, and its
+arrows not as art at all — so it is kept as an opt-in fallback, `.vgui-scroll-surface`,
+for panes where per-instance DOM matters more than the arrows. The honest summary
+is that the *colours* transfer completely to the platform bar, the *geometry*
+transfers only in WebKit, and the *arrows* do not transfer at all.
 
 ## Purpose
 
@@ -258,7 +262,8 @@ in fact, differ.
 | Horizontal | `vgui-scrollbar--horizontal` | `steam.styles:2005` | Same colours; thumb is the `"SliderHoriz"` block at `:2251` |
 | Wide metric | — | `steam.styles:343` `ScrollBar.Wide "19"` | 19 px is the only width the corpus states |
 | Inside a list panel | — | `steam.styles:2306` | Style name `"GamesPage_Details ListPanel ScrollBarSlider"`; identical values, kept as a reminder that the original supported ancestor-scoped overrides |
-| Native (recommended) | — | this library | `scrollbar-color` / `scrollbar-width`, see `## CSS recipe` |
+| Drawn (default) | `vgui-scroll-region--drawn` | this library | The button/gutter/thumb tree below; same paint in every engine |
+| Native | `vgui-scroll-surface` | this library | `scrollbar-color` / `scrollbar-width`, see `## CSS recipe` |
 
 There is no colour variant. The port ships exactly one scrollbar recipe
 (`vgui.css/styles/greensteam/greensteam.css:395`–`434`), which is why this
@@ -287,13 +292,20 @@ component has no `--vgui-theme-vgui1` counterpart to test.
 </div>
 ```
 
-The markup above is the *custom* path, which this component recommends only when a
-pane genuinely cannot use the native scrollbar. In the default path the component
-emits no scrollbar markup at all: it sets `scrollbar-color` on the scroll region and
-lets the user agent draw the rest. `aria-hidden="true"` is correct on the custom
-tree precisely because it duplicates a native affordance — if the custom tree were
-the only way to scroll, the same attribute would be an accessibility defect, which
-is the strongest argument against shipping it.
+The markup above is the *drawn* path, and it is the default: every engine can
+paint it, so the bar has the same gutter, thumb, bevel and arrows everywhere.
+`aria-hidden="true"` is correct on the tree only because it duplicates a native
+affordance — the region still scrolls with the wheel, the keyboard and the
+touchpad, and the tree carries no interaction that is not also available without
+it. That duplication is also why the tree cannot simply be the only scroll
+mechanism: the region keeps `tabindex="0"` and `Scrollbar` maps the scroll keys
+onto the inner scroller, since the region itself hides its overflow.
+
+The `native` variant is the other half of the pair: it emits no scrollbar markup
+at all, adds the shared `.vgui-scroll-surface` skin for the colours and lets the
+user agent draw the rest. It costs nothing per instance and is the right choice
+when per-instance DOM cost matters more than the bevel and the arrows — Firefox
+has no `::-webkit-scrollbar-button`, so it loses both there.
 
 ## States
 
@@ -333,7 +345,7 @@ at all, so the `Label` → `White` arrow change is unrepresented in CSS today.
 | `--vgui-text-muted` | `#A0AA95` | `Label` (`steam.styles:67`) — the idle glyph |
 | `--vgui-text-strong` | `#FFFFFF` | `White` (`steamscheme.res:13`) — the hover and active glyph |
 | `--vgui-focus-ring` | — | See `foundations.md` §4. The scrollbar family defines no focus style of its own; do not reuse the active bevel as one |
-| `--vgui-scrollbar-width` | `19px` | **NEW.** `ScrollBar.Wide "19"` (`steam.styles:343`). The port uses 18px (`greensteam.css:398`) |
+| `--vgui-scrollbar-size` | `18px` | **NEW.** `ScrollBar.Wide "19"` (`steam.styles:343`) is the only width the corpus states; the port uses 18px (`greensteam.css:398`), which is what the drawn bar and the platform skin both measure |
 | `--vgui-scrollbar-glyph-width` | `7px` | **NEW.** Base width of the arrow staircase, `x0+5`…`x0+12` (`steam.styles:2027`) |
 | `--vgui-scrollbar-glyph-height` | `4px` | **NEW.** Four rows at `y0+6`…`y0+10` (`steam.styles:2024`–`:2027`) |
 | `--vgui-scrollbar-button-size` | `18px` | **NEW, from the port only.** `greensteam.css:409`–`410` sets `::-webkit-scrollbar-button { width: 18px; height: 18px }`. The `.styles` never states a button size; 18 is the only concrete number either source gives |
@@ -362,38 +374,38 @@ community pair fails marginally less.
 ## CSS recipe
 
 ```css
-/* --- Native path. This is the default: no markup, no JS. --------------- */
-.vgui-scroll-region {
+/* --- Platform path. Opt-in: no markup, no JS. -------------------------- */
+.vgui-scroll-surface {
   /* Chromium/WebKit do not read scrollbar-color, and Firefox ignores
      ::-webkit-scrollbar entirely, so the two paths are exclusive. */
-  scrollbar-color: var(--vgui-surface) var(--vgui-surface-light);
-  scrollbar-width: var(--vgui-scrollbar-width);
+  scrollbar-color: var(--vgui-scrollbar-thumb) var(--vgui-scrollbar-gutter);
+  scrollbar-width: auto;   /* `thin`/`none` would take the arrows with them */
   overflow: auto;
   overscroll-behavior: contain;
 }
 
 /* --- WebKit path. Needed only for the arrows and the pressed bevel. ---- */
-.vgui-scroll-region::-webkit-scrollbar {
-  width: var(--vgui-scrollbar-width);
-  height: var(--vgui-scrollbar-width);
-  background-color: var(--vgui-surface-light);   /* the gutter, 2291 */
+.vgui-scroll-surface::-webkit-scrollbar {
+  width: var(--vgui-scrollbar-size);
+  height: var(--vgui-scrollbar-size);
+  background-color: var(--vgui-scrollbar-gutter);   /* the gutter, 2291 */
 }
 
-.vgui-scroll-region::-webkit-scrollbar-corner {
-  background-color: var(--vgui-surface-light);
+.vgui-scroll-surface::-webkit-scrollbar-corner {
+  background-color: var(--vgui-scrollbar-gutter);
 }
 
-.vgui-scroll-region::-webkit-scrollbar-thumb {
+.vgui-scroll-surface::-webkit-scrollbar-thumb {
   /* 2240: bgcolor = GreenBG, plus the four bevel fills of 2242-2245. A
      box-shadow ring cannot be split into light and dark sides the way the
      corpus does, so the bevel is drawn with border-color instead. */
-  background-color: var(--vgui-surface);
+  background-color: var(--vgui-scrollbar-thumb);
   border: 1px solid;
   border-color: var(--vgui-bevel-light) var(--vgui-bevel-dark)
                 var(--vgui-bevel-dark) var(--vgui-bevel-light);
 }
 
-.vgui-scroll-region::-webkit-scrollbar-button {
+.vgui-scroll-surface::-webkit-scrollbar-button {
   background-color: var(--vgui-surface);
   border: 1px solid;
   border-color: var(--vgui-bevel-light) var(--vgui-bevel-dark)
@@ -417,29 +429,29 @@ community pair fails marginally less.
 }
 
 /* 2030-2047: hover changes the glyph and nothing else. */
-.vgui-scroll-region::-webkit-scrollbar-button:hover {
+.vgui-scroll-surface::-webkit-scrollbar-button:hover {
   --glyph: var(--vgui-text-strong);
 }
 
 /* 2049-2067: active inverts every bevel and leaves the glyph White. */
-.vgui-scroll-region::-webkit-scrollbar-button:active {
+.vgui-scroll-surface::-webkit-scrollbar-button:active {
   border-color: var(--vgui-bevel-dark) var(--vgui-bevel-light)
                 var(--vgui-bevel-light) var(--vgui-bevel-dark);
 }
 
 /* 2315-2319: the disabled gutter paints nothing. Translucent, not a new
    colour, so it works over any parent surface. */
-.vgui-scroll-region[data-disabled]::-webkit-scrollbar {
+.vgui-scroll-surface[data-disabled]::-webkit-scrollbar {
   background-color: transparent;
 }
 
 /* --- Forced colours: hand the scrollbar back to the OS. ---------------- */
 @media (forced-colors: active) {
-  .vgui-scroll-region { scrollbar-color: auto; }
-  .vgui-scroll-region::-webkit-scrollbar-button { background-image: none; }
+  .vgui-scroll-surface { scrollbar-color: auto; }
+  .vgui-scroll-surface::-webkit-scrollbar-button { background-image: none; }
 }
 
-/* --- The custom tree (only when the native scrollbar is unavailable). -- */
+/* --- The drawn tree. The default path. --------------------------------- */
 .vgui-scrollbar { display: flex; flex-direction: column; }
 .vgui-scrollbar__button {
   inline-size: 100%;
@@ -473,32 +485,35 @@ community pair fails marginally less.
 
 Three decisions carry this recipe.
 
-**The native path is the default and the custom path is opt-in.** The corpus
-describes a scrollbar VGUI drew itself, but a browser scrollbar is a user-agent
-control with its own accessibility contract, its own keyboard behaviour and its
-own touch behaviour. `scrollbar-color` takes exactly two colours — thumb then track
-— which maps onto `GreenBG` and `LightGreenBG` with no loss, so the *colour*
-fidelity of the original is achievable for free and is what most panes should use.
-`scrollbar-width` accepts `auto | thin | none` in Firefox only; a 19px custom width
-is therefore a WebKit-only affordance, which is why `--vgui-scrollbar-width` is
-applied to `::-webkit-scrollbar` and not to `scrollbar-width` (a 19px value there
-would be invalid and drop the whole declaration).
+**The drawn tree is the default and the platform bar is the fallback.** A
+browser scrollbar is a user-agent control with its own accessibility contract,
+its own keyboard behaviour and its own touch behaviour, and `scrollbar-color`
+takes exactly two colours — thumb then track — which maps onto `GreenBG` and
+`LightGreenBG` with no loss. Fidelity, though, is what this library exists for:
+`::-webkit-scrollbar-button` is the only way to draw the arrows, and Firefox has
+no equivalent at all, so a platform bar loses the bevel and the arrows there and
+only there. The drawn tree therefore paints the reference bar everywhere and
+`.vgui-scroll-surface` is the cheap fallback for a pane whose per-instance DOM
+cost matters more. `scrollbar-width` accepts `auto | thin | none` only; the 18px
+metric is applied to `::-webkit-scrollbar` rather than there, because an invalid
+value would drop the whole declaration and `thin` would take the arrows with it.
 
 **The glyph is rebuilt from gradients rather than shipped as a sprite.** The corpus
 arrow is four rectangles of width 1, 3, 5 and 7 at four consecutive rows, i.e. a
 7×4 staircase with a flat top — not an isoceles triangle. Four 1px-tall gradient
 layers reproduce it exactly and cost no asset, which matters because this
 repository has no image pipeline at all (see `## Assets`). The `clip-path` in the
-custom tree is the same shape expressed as geometry; if exactness matters more than
+drawn tree is the same shape expressed as geometry; if exactness matters more than
 the sprite-less constraint, `clip-path` on a 7×4 box is pixel-identical to the
 fills, whereas a triangle *without* clipping would not be.
 
-**`::-webkit-scrollbar-button` is the only way to style the arrows, and it is not
-in any specification.** It is a WebKit/Blink extension; Firefox and Safari on iOS
-ignore it, and Safari's own support has been inconsistent. The pressed bevel is
-therefore a Chromium-only nicety, and the component must not require it: the
-design degenerates to a plain coloured scrollbar, which is still correct. The port
-made the same call and reached the same conclusion (`greensteam.css:395`–`434` is
+**`::-webkit-scrollbar-button` is not in any specification.** It is a
+WebKit/Blink extension; Firefox and Safari on iOS ignore it, and Safari's own
+support has been inconsistent — which is exactly why relying on it for the
+default would be unsound, and why the drawn tree draws the arrows itself. On the
+platform path the pressed bevel remains a Chromium-only nicety and the design
+degenerates to a plain coloured scrollbar, which is still correct. The port made
+the same call and reached the same conclusion (`greensteam.css:395`–`434` is
 WebKit-only throughout).
 
 ## React API
@@ -507,12 +522,12 @@ WebKit-only throughout).
 export interface ScrollbarProps extends HTMLAttributes<HTMLDivElement> {
   /** Scrolling axis. Defaults to `"vertical"`. */
   orientation?: 'vertical' | 'horizontal'
-  /** Painting strategy. `"native"` sets `scrollbar-color` and emits no
-   *  extra markup; `"custom"` renders the button/gutter/thumb tree. Defaults
-   *  to `"native"`. */
-  variant?: 'native' | 'custom'
-  /** Bar thickness. Defaults to `--vgui-scrollbar-width` (19px). Only
-   *  honoured by the custom variant and by WebKit. */
+  /** Painting strategy. `"drawn"` renders the button/gutter/thumb tree and
+   *  is the default; `"native"` adds the shared `.vgui-scroll-surface`
+   *  skin and lets the user agent draw the bar. */
+  variant?: 'drawn' | 'native'
+  /** Bar thickness. Defaults to `--vgui-scrollbar-size` (18px). Honoured by
+   *  both variants; on the native path only WebKit reads it. */
   thickness?: number | string
   /** Reserve space for the bar even when the content does not overflow. */
   alwaysVisible?: boolean
@@ -530,7 +545,7 @@ export interface ScrollbarProps extends HTMLAttributes<HTMLDivElement> {
 }
 ```
 
-`onScrollOffsetChange` exists because the custom variant cannot know the thumb
+`onScrollOffsetChange` exists because the drawn variant cannot know the thumb
 position without a scroll listener. Note that it is *not* an
 `onScroll` passthrough: it reports the offset and the scrollable extent, so a
 consumer implementing a virtualised list does not have to re-derive both. The
@@ -542,17 +557,24 @@ the region `aria-disabled` would be a lie; the content still scrolls.
 
 ## Accessibility
 
-- **Use the native scrollbar.** A custom scrollbar must reproduce: wheel and
-  trackpad deltas, `PageUp`/`PageDown`, `Home`/`End`, `Space`, arrow keys, middle-
-  click autoscroll, keyboard focus-scroll, scroll anchoring, overscroll
-  chaining/rubber-banding, touch momentum, and the OS's own size preferences.
-  `scrollbar-color` gets the palette without giving any of that up, so it is the
-  default here and the `"custom"` variant is documented as a last resort.
+- **The drawn tree is the default, and the scroll mechanics are handed back
+  deliberately.** A hand-drawn scrollbar that replaces the user agent's must
+  reproduce: wheel and trackpad deltas, `PageUp`/`PageDown`, `Home`/`End`,
+  `Space`, arrow keys, middle-click autoscroll, keyboard focus-scroll, scroll
+  anchoring, overscroll chaining/rubber-banding, touch momentum, and the OS's own
+  size preferences. The buttons and the thumb are therefore decoration over the
+  real scroller, not a replacement for it: the region keeps `tabindex="0"`, the
+  inner `__content` is the element that actually scrolls, and `Scrollbar` maps
+  the scroll keys onto it — the key set the native bar would have handled. Wheel,
+  trackpad, touch and momentum come from the element being a real scroll
+  container, so none of those are re-implemented. `variant="native"` is the
+  fallback for a pane that would rather keep the user agent's bar outright.
 - **The arrows are 17–19px, well under the 24×24 WCAG 2.5.8 target size.** The one
   concrete button size in either source is `18px` (`greensteam.css:409`–`410`);
   the corpus's `ScrollBar.Wide "19"` (`steam.styles:343`) is the gutter, not the
   button. Widening the gutter to fix this is the wrong trade; the right fix is not
-  to require the arrows, which is what choosing the native variant does.
+  to *require* the arrows — `variant="native"` drops them — and the list panels
+  that use this component also expose the same scrolling through the keyboard.
 - **The idle arrow glyph passes non-text contrast by 0.11.** `--vgui-text-muted`
   `#A0AA95` on the `#4C5844` face is **3.11:1** (computed; the 4.06:1 figure in
   `foundations.md:436` is the same colour on `--vgui-surface-dark`). Arrows are
@@ -575,22 +597,24 @@ the region `aria-disabled` would be a lie; the content still scrolls.
   against `--vgui-surface` `#4C5844` is **1.30:1** (`foundations.md:476`), and the
   thumb against `--vgui-surface-dark` is the same **1.30:1** (`foundations.md:477`).
   Where the scrollbar is, how long the thumb is, and where the track ends are all
-  below the 3:1 threshold for meaningful graphics. This is inherited from Valve and
-  it is the strongest practical argument for `scrollbar-color` over a hand-drawn
-  bar: the OS scrollbar is measured against the *window*, not against our palette,
-  so it stays visible even when ours does not.
+  below the 3:1 threshold for meaningful graphics. This is inherited from Valve,
+  and it is the strongest practical argument for the native variant: the OS
+  scrollbar is measured against the *window*, not against our palette, so it stays
+  visible even when ours does not. It is not an argument against the drawn
+  default — the whole library is a deliberate reproduction of a low-contrast
+  skin — but it is the case to reach for when `variant="native"` is being chosen.
 - **Focus.** No scrollbar block in the corpus has a `:focus` style; the only focus
   colour the file declares, `ScrollGlyphFocus "242 242 242"`
   (`steam.styles:74`, 6.73:1 against the face — it would pass), is referenced by
   nothing. The scroll *region* must therefore show focus itself, using
   `--vgui-focus-ring` from `foundations.md` §4. Do not treat the active bevel as a
   focus indicator: it is a mouse-only state that a keyboard user never sees.
-- **Keep the buttons out of the tab order.** `tabindex="-1"` on the custom arrows
+- **Keep the buttons out of the tab order.** `tabindex="-1"` on the drawn arrows
   is correct — a scrollbar with four extra tab stops is worse than one without,
   and the arrows duplicate what the arrow keys already do. The region itself gets
   `tabindex="0"` only if it has no focusable children; if it does, the browser
   scrolls it on focus already.
-- **Decoration is hidden, not removed.** `aria-hidden="true"` on the custom tree
+- **Decoration is hidden, not removed.** `aria-hidden="true"` on the drawn tree
   and `pointer-events: none` on the glyph, so the glyph is not announced and does
   not swallow clicks intended for the button.
 - **Under `prefers-reduced-motion`, do not animate the thumb.** Nothing here needs
@@ -637,15 +661,16 @@ at it through the documented variables without touching the API (`docs/assets.md
 ## Examples
 
 ```tsx
-// Default: native scrollbar, Valve's colours, no extra markup.
+// Default: the drawn bar, the same gutters, thumb and arrows in every engine.
 <Scrollbar className="vgui-console__scroll" alwaysVisible>
   <pre className="vgui-console__log">
     {lines.map((line) => <ConsoleLine key={line.id} {...line} />)}
   </pre>
 </Scrollbar>
 
-// Custom: needed only for the pressed bevel, which WebKit alone exposes.
-<Scrollbar variant="custom" thickness={19} onScrollOffsetChange={(offset, max) => track(offset / max)}>
+// Native: hand the bar back to the user agent when per-instance DOM matters
+// more than the bevel and the arrows, which Firefox cannot draw at all.
+<Scrollbar variant="native" onScrollOffsetChange={(offset, max) => track(offset / max)}>
   <AvatarGrid users={users} />
 </Scrollbar>
 ```
