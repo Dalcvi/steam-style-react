@@ -122,10 +122,10 @@ does happen on an explanatory paragraph inside a `Dialog`.
 
 | Variant | What changes | Source |
 | --- | --- | --- |
-| *(default)* | `<span>`, `--vgui-text-muted`, 14px | `steam.styles:1147` |
+| *(default)* | `<span>`, `--vgui-text` `#D8DED3`, 14px | `steam.styles:1147`, contrast-corrected — see *Accessibility* |
 | `--html-for` | Renders `<label for>`; clicking focuses the control | *(library)* |
 | `--strong` | `--vgui-text-strong`, for a caption that must lead | *(library)* |
-| `--muted` | `--vgui-text-dim`, for de-emphasised list/empty-state text | *(library)* |
+| `--muted` | `--vgui-text-muted` `#A0AA95` (the classic `Label` grey), for captions on a darker surface | *(library)* |
 | `--heading` | `--vgui-heading` `#C4B550`, for a label acting as a section title | *(library)* |
 | `--required` | Appends a `*` in `--vgui-danger` | *(library)*, a11y-gated — see below |
 | `--disabled` | Sunken `DisabledText1` over `DisabledText2` | `steamscheme.res:50-51` |
@@ -146,7 +146,7 @@ pointing at the control. When it is a standalone sentence, it renders a `<span>`
 
 | State | Change | Source |
 | --- | --- | --- |
-| Normal | `--vgui-text-muted` | `steam.styles:1152` |
+| Normal | `--vgui-text` `#D8DED3` — differs from the corpus `Label` grey, see *Accessibility* | `steam.styles:1152` |
 | Hover | **Nothing.** A label is not interactive | `steam.styles:1147` — no `:hover` |
 | Focus-visible | Only when it is a `<label>` that received focus in a form context | *(library)* |
 | Selected | `selectedtextcolor = Text` applies to text selection | `steam.styles:1153` |
@@ -172,9 +172,9 @@ point is to be noticed, not to be read as body copy at length.
 
 | Token | Where |
 | --- | --- |
-| `--vgui-text-muted` `#A0AA95` | Default text (the `Label` token) |
+| `--vgui-text` `#D8DED3` | Default text — **not** the `Label` grey, see *Accessibility* |
 | `--vgui-text-strong` `#FFFFFF` | `--strong` |
-| `--vgui-text-dim` `#758666` | `--muted` |
+| `--vgui-text-muted` `#A0AA95` | `--muted` (the `Label` token, for darker surfaces) |
 | `--vgui-heading` `#C4B550` | `--heading` |
 | `--vgui-danger` `#E2251A` | `--required` asterisk, `--error` |
 | `--vgui-text-disabled` `#75806F` | Disabled text (`DisabledText1`) |
@@ -226,12 +226,15 @@ copy-pasted. The genuine redundancy is narrower and sharper:
   and has no shadow partner, so it is the weaker of the two; treat it as
   superseded by `--vgui-text-disabled`.
 
-**`FieldLabel` therefore uses one token — `--vgui-text-muted` `#A0AA95`
-(`steam.styles:67`)** — and maps the remaining roles onto tokens the library
-already has, rather than minting five more greys:
+**`FieldLabel` therefore uses two tokens — `--vgui-text` `#D8DED3` for the
+default caption and `--vgui-text-muted` `#A0AA95` (`steam.styles:67`, the `Label`
+token)** — and maps the remaining roles onto tokens the library already has,
+rather than minting five more greys:
 
 1. `Label` is the value the engine actually resolves for the `Label` control
-   (`:1152`), so it is the transcription rather than a guess.
+   (`:1152`), so it is the faithful transcription. It ships as the `--muted`
+   variant rather than the default, because 3.11:1 on a green panel fails
+   WCAG 1.4.3 — see *Accessibility*.
 2. `Label2` (secondary text in the downloads panel) and `NavLabel` (navigation)
    are *roles*, not colours; in this library they are the same caption token used
    at a smaller size, and the original values survive as `pixelPerfect` theme
@@ -251,10 +254,9 @@ text on a `--vgui-surface` `#4C5844` panel, `Label2` `#736F6C` is **1.51:1**,
 `LabelDisabled` `#8A8784` is **2.11:1** and `NavLabel` `#9E9995` is **2.67:1**
 (computed; all three are well below the 4.5:1 that WCAG 1.4.3 asks for).
 `LabelFocus` `#C7C4C2` is fine at **5.67:1** on `--vgui-surface-dark`. `Label`
-`#A0AA95` at 3.11:1 is the *best* of the greys — which is itself the strongest
-argument that it is the one real caption token, and also the reason the
-Accessibility section below sends `GreenBG` captions to `--vgui-text` `#D8DED3`
-instead.
+`#A0AA95` at 3.11:1 is the *best* of the greys — which is why it is the one real
+caption token, and also why the Accessibility section below sends `GreenBG`
+captions to `--vgui-text` `#D8DED3` instead.
 
 ## CSS recipe
 
@@ -265,7 +267,7 @@ instead.
   font-size: var(--vgui-font-size, 14px);
   font-weight: inherit;
   line-height: 1.25;                    /* labels sit in tight form rows */
-  color: var(--vgui-text-muted);
+  color: var(--vgui-text);
   text-transform: none;                 /* NEVER uppercase — that is StatusLabel */
   letter-spacing: 0;
   max-inline-size: 100%;
@@ -280,7 +282,7 @@ instead.
 }
 
 .vgui-field-label--strong  { color: var(--vgui-text-strong); }
-.vgui-field-label--muted   { color: var(--vgui-text-dim); }
+.vgui-field-label--muted   { color: var(--vgui-text-muted); }
 .vgui-field-label--heading { color: var(--vgui-heading); }
 .vgui-field-label--error   { color: var(--vgui-danger); }
 
@@ -372,20 +374,22 @@ Notes:
   meaning, and never leave a disabled label as the only indication that
   something is unavailable — the control itself must carry `disabled` or
   `aria-disabled`.
-- **The default caption fails AA on a `GreenBG` panel, and this is the single
-  most important number in the doc.** `--vgui-text-muted` `#A0AA95` on
-  `--vgui-surface` `#4C5844` is **3.11:1** — below the 4.5:1 that WCAG 1.4.3 asks
-  for normal text, and only just over the 3:1 that applies to large text and UI
-  boundaries. `foundations.md` §10 lists the same token on
-  `--vgui-surface-dark` `#3E4637` (**4.06:1**, AA-large only) but does not list
-  the `GreenBG` pairing at all, so it is measured here. The fix is not a new
-  token: **use `--vgui-text` `#D8DED3` for captions that sit on `--vgui-surface`**
-  (**5.49:1**, AA) and reserve the muted `Label` grey for `DarkGreenBG`
-  interiors, where it reaches 4.06:1. The `--muted` variant exists for the
-  dark-surface case; it must not be the default on a green panel.
-- **`--muted` must not be used for essential text.** `--vgui-text-dim` `#758666`
-  on `--vgui-surface` is **1.92:1** (`foundations.md` §10). It belongs on
-  genuinely decorative or redundant text only.
+- **The classic default caption fails AA on a `GreenBG` panel, so the default was
+  changed.** `--vgui-text-muted` `#A0AA95` on `--vgui-surface` `#4C5844` is
+  **3.11:1** — below the 4.5:1 that WCAG 1.4.3 asks for normal text, and only
+  just over the 3:1 that applies to large text and UI boundaries.
+  `foundations.md` §10 lists the same token on `--vgui-surface-dark` `#3E4637`
+  (**4.06:1**, AA-large only) but does not list the `GreenBG` pairing at all, so
+  it is measured here. **This section is normative: the default is `--vgui-text`
+  `#D8DED3`** (**5.49:1**, AA), and the `Label` grey is reserved for the
+  `--muted` variant on `DarkGreenBG` interiors, where it reaches 4.06:1. An
+  earlier draft of this doc made `--vgui-text-muted` the default, which
+  contradicted this section; the *Variants*, *States* and *Tokens* tables have
+  been corrected to match.
+- **`--vgui-text-dim` is not exposed.** `#758666` on `--vgui-surface` is
+  **1.92:1** (`foundations.md` §10) — too low even for a de-emphasised caption,
+  so `FieldLabel` has no variant for it. Use it only for genuinely decorative or
+  redundant text elsewhere.
 - **Error text needs the message, not just the colour.** `error` sets the colour;
   the actual explanation belongs in adjacent text associated via
   `aria-describedby`.
@@ -396,10 +400,10 @@ None. `steam.styles:1147` declares no `image` and no `render_bg`. A label is one
 text node — the entire visual identity is the colour and the size, plus the
 two-colour shadow trick for the disabled state.
 
-**Assets:** this repository ships **no image assets at all** — there is no
-`public/` and no `src/assets/`. Any component that needs a bitmap is blocked
-until that directory exists; `FieldLabel` is unaffected, which is precisely why
-a label was a good first component to finish.
+**Assets:** this repository ships **no image assets, by policy** — there is no
+`public/` and no `src/assets/`, and none is planned: a glyph is drawn with CSS or
+an inline `data:` URI instead (see `docs/assets.md`). `FieldLabel` is unaffected,
+which is precisely why a label was a good first component to finish.
 
 ## Examples
 

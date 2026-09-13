@@ -66,9 +66,9 @@
 }
 
 /*
- * The corpus declares no disabled state. Option 2 of the component doc: accept
- * it for API symmetry, map it to `aria-disabled`, and dim with `--vgui-text-dim`
- * ONLY — no shadow.
+ * The corpus declares no disabled state. Option 2 of the component doc: an
+ * opt-in `disabled` prop maps to `aria-disabled` and dims with
+ * `--vgui-text-dim` ONLY — no shadow.
  */
 .vgui-status-label[aria-disabled='true'] {
   color: var(--vgui-text-dim);

@@ -88,8 +88,10 @@ steam-scheme:39    LightClayButtonBG = #7D8078 // "buttons on property sheet int
    *"buttons on property sheet interior, active tab"* (`:39`). So a real VGUI
    property sheet is **clay-grey inside with green tabs on top** — a
    two-material dialog, not an all-green one. `foundations.md` already carries
-   both as `--vgui-clay-light` and `--vgui-clay-button`. A recreation that leaves
-   the page `GreenBG` is flattening away half the design.
+   both, as `--vgui-clay-light` and `--vgui-clay-button`. **Only the first is
+   `Tabs`' own**: the second is consumed by `Button`'s `clay` variant, because
+   the buttons belong to the sheet's consumer, not to `Tabs`. A recreation that
+   leaves the page `GreenBG` is flattening away half the design.
 
 ## Variants
 
@@ -142,7 +144,13 @@ then needs `tabindex` and its own key handling.
 | Disabled | `#4C5844` | `#75806F` + `#282E22` shadow | unchanged |
 | Flash (changed) | `#4C5844` | `#C4B550` (`Maize`) | unchanged |
 | Page interior | `#686A65` (`LightClayBG`) | `#FFFFFF` | flat 1px `#4A4846` (`PropertySheetBG`) |
-| Page buttons | `#7D8078` (`LightClayButtonBG`) | `#FFFFFF` | raised bevel |
+
+> **`LightClayButtonBG` `#7D8078` is not a `Tabs` token.** `steamscheme.res:39`
+> colours the *buttons on* a property sheet, not the sheet itself — those are
+> plain `Button`s in their `clay` variant, which consumes the shared
+> `--vgui-clay-button`. `Tabs` never paints a button, so it neither declares nor
+> reads that token; the row below is `--vgui-clay-surface`, the panel's own
+> frame.
 
 ## Tokens
 
@@ -152,7 +160,7 @@ then needs `tabindex` and its own key handling.
 | `--vgui-text-strong` | `#FFFFFF` | Unselected label |
 | `--vgui-heading` | `#C4B550` | Selected label (`Over`) |
 | `--vgui-clay-light` | `#686A65` | Page interior (`LightClayBG`, `steamscheme.res:38`) |
-| `--vgui-clay-button` | `#7D8078` | Page footer buttons (`LightClayButtonBG`, `:39`) |
+| `--vgui-clay-surface` | `#464646` | Page interior 1px frame (`ClayBG`) |
 | `--vgui-tabs-gap` | `3px` | `PropertySheet.TabGap` (`steam.styles:337`) |
 | `--vgui-tabs-overlap` | `1px` | The seam erasure; derived from `y1 + 2` — **new token** |
 | `--vgui-tabs-close-slot` | `16px` | `TabPageCloseButton { padding-right = 16 }` (`:3130`) |
@@ -325,10 +333,10 @@ with automatic activation, a panel that loads slowly cannot be browsed past.
 - `graphics/Window-Close.tga` — the closable-tab glyph, referenced by
   `TabCloseButton` (`steam.styles:1832`) with `inset = "-6 0 0 0"`. In the CSS
   port the same glyph ships as `close.png` / `close2.png`, both **18×18**.
-- **Art gap:** `F:\steam-style\steam-style-react\` currently ships **no image
-  assets at all** — there is no `public/` and no `src/assets/`. A closable tab
-  therefore cannot be built until the 18×18 glyph set is imported. See
-  `docs/assets.md`.
+- **Assets:** `F:\steam-style\steam-style-react\` ships **no image
+  assets, by policy** — there is no `public/` and no `src/assets/`. A closable tab
+  therefore draws its own `✕` rather than fetching the port's 18×18
+  `close.png`/`close2.png`. See `docs/assets.md`.
 
 No other tab art exists: the strip, bevel, interior and flash are all drawn by
 `fill` programs.

@@ -9,11 +9,11 @@ export interface ToolbarItem {
   id: string
   /** Accessible name; required because the button is glyph-only. */
   label: string
-  /** Sprite base name under the icon set, e.g. "icon_button_back". */
+  /** Glyph base name, e.g. "icon_button_back". Sets `--vgui-toolbar-back`. */
   icon: string
   /** Called on activation. */
   onClick?: () => void
-  /** Renders the disabled sprite and blocks activation. */
+  /** Dims the glyph to `--vgui-text-disabled` and blocks activation. */
   disabled?: boolean
   /** Sticky pressed state for toggles, e.g. fullscreen. */
   pressed?: boolean
@@ -49,8 +49,13 @@ function glyphClass(icon: string): string {
  *
  * The VGUI original has **no** `ToolBar` block at all: a toolbar is a plain
  * panel with buttons on it, and the buttons paint nothing (`bgcolor = none`
- * plus an empty `render_bg {}`). The strip is therefore deliberately bare —
- * every state is carried by swapping the sprite, never by a background tint.
+ * plus an empty `render_bg {}`). The strip is therefore deliberately bare, and
+ * every state is carried by the glyph rather than by a background tint.
+ *
+ * The sprites themselves are procedural stand-ins rather than Valve's artwork —
+ * see `docs/assets.md` — and each one is overridable through a
+ * `--vgui-toolbar-<glyph>` custom property, so a consumer who owns the original
+ * `.tga` set can drop it straight in.
  * See `docs/components/Toolbar.md`.
  */
 export const Toolbar = forwardRef<HTMLDivElement, ToolbarProps>(function Toolbar(

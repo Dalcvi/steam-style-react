@@ -42,17 +42,20 @@ is invisible chrome and everything about its appearance comes from its
    have `background: none; border: 0`. A recreation that gives the menu bar a
    `#4C5844` background and a bevel is inventing chrome Valve never drew — the
    bar sits directly on the window body (`Page`).
-2. **The resting text is *dim*, not white.** `TitleDimText = 136 145 128` →
-   `#889180`, the same token that colours an unfocused window title. Menu-bar
-   words only reach `White` when the **frame has focus**, and only reach maize
-   `Over` `#C4B550` when the frame has focus *and* the item is open. That is a
-   three-level state ladder (dim → white → maize) driven as much by *window*
-   focus as by the item, and it is the detail a recreation is most likely to
-   flatten into "white, maize on hover".
+2. **The resting text is *dim*, not white — in the corpus.** `TitleDimText =
+   136 145 128` → `#889180`, the same token that colours an unfocused window
+   title. Menu-bar words only reach `White` when the **frame has focus**, and only
+   reach maize `Over` `#C4B550` when the frame has focus *and* the item is open.
+   That is a three-level state ladder (dim → white → maize) driven as much by
+   *window* focus as by the item, and it is the detail a recreation is most likely
+   to flatten into "white, maize on hover". **This library drops the dim level**,
+   because `#889180` on `GreenBG` is 2.31:1 — see *Accessibility*. The shipped
+   ladder is white → maize plus the open fill.
 3. **`frameFocus` is a window-level state selector, not `:focus`.** In VGUI every
    control in an unfocused `Frame` dims together. On the web the nearest
-   equivalent is `:focus-within` on the window — see *CSS recipe*. Getting this
-   wrong makes every menu bar on the page light up at once.
+   equivalent is `:focus-within` on the window. **Not implemented**, because the
+   dim level it would restore is the inaccessible one. Getting it wrong otherwise
+   makes every menu bar on the page light up at once.
 4. **`padding-right = -2` is a real negative padding.** It tightens the gap
    between adjacent words so the strip reads as a continuous run rather than four
    separated buttons. There is no CSS equivalent; reproduce it by *reducing* the
@@ -76,8 +79,7 @@ is invisible chrome and everything about its appearance comes from its
 
 | State | Text | Background |
 | --- | --- | --- |
-| Window unfocused, idle | `#889180` (`TitleDimText`) | transparent |
-| Window focused, idle | `#FFFFFF` | transparent |
+| Idle | `#FFFFFF` — `--vgui-text-strong`, not the corpus `TitleDimText` (see *Tokens*) | transparent |
 | Focused, hover | `#FFFFFF` | transparent — *the original never fills* |
 | Focused, item open | `#C4B550` (`Over`) | transparent in `steam.styles`; `#5A6A50` in the CSS port |
 | Keyboard focus-visible | `#FFFFFF` | transparent + focus ring |
@@ -93,22 +95,22 @@ plausible VGUI screenshot.
 
 | Token | Value | Where |
 | --- | --- | --- |
-| `--vgui-text-dim` | `#889180` | Resting word — note this is `TitleDimText`, **not** the `#758666` `--vgui-text-dim` in the palette |
-| `--vgui-text-strong` | `#FFFFFF` | Focused window, and hover |
+| `--vgui-text-strong` | `#FFFFFF` | Resting word, focused window, and hover — see the departures below |
 | `--vgui-heading` | `#C4B550` | Open item (`Over`) |
 | `--vgui-surface-light` | `#5A6A50` | Open/hover fill (added, see *States*) |
 | `--vgui-text-hover` | `#E3E41F` | CSS-port nav hover — **not** used here, see `NavBar` |
 | `--vgui-text-disabled` | `#75806F` | Disabled word |
 | `--vgui-menubar-height` | `24px` | Corpus-derived, see *Open questions* |
 
-> **Token collision, must be resolved before implementing.** `--vgui-text-dim` is
-> already defined as `#758666` (`DimListText`) in `foundations.md §3`, but
-> `TitleDimText` is `#889180` — a different colour with a confusingly similar
-> name. They are not interchangeable: `#758666` is for de-emphasised *list* text
-> and `#889180` for *chrome* text. An implementation that reaches for
-> `--vgui-text-dim` here will be visibly too dark. Either add
-> `--vgui-text-dim-chrome: #889180` or rename the existing token; do not silently
-> alias one to the other.
+> **The corpus resting colour is not used, and the collision it caused is moot.**
+> `steam.styles` rests a menu-bar word on `TitleDimText` `#889180`, which on a
+> `GreenBG` surface is **2.31:1** — far below the 4.5:1 WCAG 1.4.3 asks for. The
+> accessibility section below makes the resting word `--vgui-text-strong`
+> (`#FFFFFF`, **7.54:1**), so `#889180` is **not** promoted to a token at all and
+> `--vgui-text-dim` keeps its single meaning, `#758666` (`DimListText`) for
+> de-emphasised *list* text. An earlier draft of this doc proposed minting
+> `--vgui-text-dim-chrome: #889180` to avoid the collision; with the dimension
+> dropped, no second token is needed.
 
 ## CSS recipe
 
@@ -128,15 +130,15 @@ plausible VGUI screenshot.
   padding: 2px 4px 2px 2px;
   border: 0;
   background: transparent;
-  color: #889180;                     /* TitleDimText */
+  color: var(--vgui-text-strong);     /* NOT TitleDimText — 2.31:1, see Tokens */
   font: inherit;
   font-size: 14px;
   line-height: var(--vgui-menubar-height, 24px);
   cursor: default;
 }
 
-/* The frameFocus ladder: the whole strip brightens with the window. */
-.vgui-window:focus-within .vgui-menubar__item,
+/* "Focused, hover" is white on transparent — the original never fills — so hover
+   only has to hold the resting colour. */
 .vgui-menubar__item:hover {
   color: var(--vgui-text-strong);
 }
@@ -200,23 +202,23 @@ export interface MenuBarProps {
 - **No mouse-only behaviour.** VGUI menu bars open on click *and* stay open while
   the pointer slides across siblings ("menu switching"). Reproduce that for
   pointer users, but the keyboard path must not depend on it.
-- **The dim resting colour is the accessibility problem.**
-  `#889180` on `--vgui-surface` `#4C5844` is **2.31:1** — below the 4.5:1 needed
-  for 14px text, and below even 3:1. In the original this is *intentional*: an
-  unfocused window's menu bar is dimmed to say "this window is not active". The
-  web equivalent is worse, because a browser window can hold many panes and only
-  one has focus — so a user reading a form's menu bar with focus elsewhere gets
-  unreadable words. **Departure:** render `--vgui-text-strong` at rest and use the
-  dim colour only when the *whole application* is unfocused, or drop the dim
-  level entirely and keep dim → white → maize as a two-step ladder (white →
-  maize) plus the open fill. Record whichever is chosen in the component's
-  Storybook notes so the deviation is visible.
+- **The dim resting colour is the accessibility problem, and it is the reason the
+  corpus value is not used.** `#889180` on `--vgui-surface` `#4C5844` is
+  **2.31:1** — below the 4.5:1 needed for 14px text, and below even 3:1. In the
+  original this is *intentional*: an unfocused window's menu bar is dimmed to say
+  "this window is not active". The web equivalent is worse, because a browser
+  window can hold many panes and only one has focus — so a user reading a form's
+  menu bar with focus elsewhere gets unreadable words. **Shipped:** the resting
+  word is `--vgui-text-strong` (**7.54:1**) and the ladder is white → maize, with
+  the open fill as the third cue. The dim level is dropped entirely rather than
+  gated on application focus, because `document.hasFocus()` is unreliable and the
+  state is invisible to assistive tech either way.
 - **Access keys are a period feature with modern hazards.** `Alt+F` collides
   with the browser's own menus. Announce `accessKey` but treat the binding as
   best-effort and never as the only way to reach a menu.
 - **The strip needs a visible boundary when it floats over content.** Since
-  `MenuBar` has no background, place it inside a `Panel`/`Window`; if it is ever
-  placed over a busy background the 2.31:1 text will disappear entirely.
+  `MenuBar` has no background, place it inside a `Panel`/`Window`; over a busy
+  background even the strong white loses its edge.
 
 ## Assets
 

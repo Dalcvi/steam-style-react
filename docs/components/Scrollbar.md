@@ -626,12 +626,13 @@ triangle with padding. `greensteam.css:395`–`434` also uses a flat 18px bar ra
 than the corpus's `19` (`steam.styles:343`) and `18` again for the buttons
 (`greensteam.css:409`–`410`).
 
-**The art gap applies anyway.** `F:\steam-style\steam-style-react\` has no image
+**The no-asset policy applies anyway.** `F:\steam-style\steam-style-react\` has no image
 assets of any kind — no `public/`, no `src/assets/` — so even if we preferred the
 port's raster arrows they are not importable, and a build step plus an asset
 pipeline would have to exist first. This doc therefore specifies the CSS-gradient
 arrow in `## CSS recipe`: it is byte-for-byte Valve's geometry, it costs no asset,
-and it can be swapped for the port's PNGs later without touching the component API.
+and a consumer who holds their own licence for the artwork can point the component
+at it through the documented variables without touching the API (`docs/assets.md`).
 
 ## Examples
 

@@ -17,6 +17,8 @@ export interface StatusLabelProps
   accessiblePrefix?: string
   /** Renders a polite live region so changes are announced. */
   live?: 'off' | 'polite' | 'assertive'
+  /** Dim the text with `--vgui-text-dim` only — no shadow — and expose `aria-disabled`. */
+  disabled?: boolean
 }
 
 export const StatusLabel = forwardRef<HTMLElement, StatusLabelProps>(
@@ -29,6 +31,7 @@ export const StatusLabel = forwardRef<HTMLElement, StatusLabelProps>(
       strong = false,
       accessiblePrefix,
       live = 'off',
+      disabled = false,
       ...rest
     },
     ref,
@@ -40,6 +43,10 @@ export const StatusLabel = forwardRef<HTMLElement, StatusLabelProps>(
     if (className) classes.push(className)
 
     const ariaLive = live === 'off' ? undefined : live
+    const disabledAttrs = {
+      'aria-disabled': disabled || undefined,
+      'data-disabled': disabled ? ('true' as const) : undefined,
+    }
     const content = (
       <>
         {accessiblePrefix !== undefined && (
@@ -56,6 +63,7 @@ export const StatusLabel = forwardRef<HTMLElement, StatusLabelProps>(
           href={href}
           className={classes.join(' ')}
           aria-live={ariaLive}
+          {...disabledAttrs}
           {...rest}
         >
           {content}
@@ -68,6 +76,7 @@ export const StatusLabel = forwardRef<HTMLElement, StatusLabelProps>(
         ref={ref as Ref<HTMLSpanElement>}
         className={classes.join(' ')}
         aria-live={ariaLive}
+        {...disabledAttrs}
         {...rest}
       >
         {content}

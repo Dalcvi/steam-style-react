@@ -5,10 +5,10 @@
  * There is no `ToolBar` block in `steam.styles`, and that absence is the
  * spec: a VGUI toolbar paints nothing, and its buttons are `bgcolor = none`
  * with an empty `render_bg {}`. So the container is bare — no strip, no
- * border, no divider — and a button's state is a **different sprite**, never
- * a hover tint, a border colour or a transform.
+ * border, no divider — and a button's state is carried by the **sprite**, never
+ * by a hover face, a border colour or a transform.
  *
- * Three deliberate departures from the corpus, each one documented in the
+ * Four deliberate departures from the corpus, each one documented in the
  * component doc's accessibility section:
  *
  *   1. The hit area is `--vgui-min-target-size` (24px) with the sprite still
@@ -18,13 +18,27 @@
  *   3. The glyph insets (the `-5px` home pull and the 1px forward/reload/stop
  *      pulls) are kept verbatim from `steam.styles`: they are optical
  *      corrections for 16x16 art that does not fill its canvas.
+ *   4. The sprite set is not shipped. Valve's twenty `icon_button_*` sprites are
+ *      copyrighted artwork and this package is redistributable, so each glyph is
+ *      a procedural SVG stand-in drawn through `mask-image` (see
+ *      `docs/assets.md`). A consumer who owns the art points `--vgui-toolbar-back`
+ *      and friends at it and gets the original sprites back.
  *
- * The sprites are CSS `background-image`s, so they are invisible to assistive
- * technology by construction; the accessible name is the button's
+ * The glyphs are painted as masks over `background-color`, so they follow the
+ * theme's tokens instead of being baked into an image, and they are invisible to
+ * assistive technology by construction: the accessible name is the button's
  * `aria-label`.
  */
 
 .vgui-toolbar {
+  /*
+   * Component-local, per foundations.md §4. The glyph tints mirror `Window`'s
+   * frame controls so a toolbar and a titlebar read as the same material.
+   */
+  --vgui-toolbar-glyph: var(--vgui-clay-glyph-dim, #a6aca2);
+  --vgui-toolbar-glyph-active: var(--vgui-clay-glyph, #adb5a8);
+  --vgui-toolbar-glyph-disabled: var(--vgui-text-disabled, #75806f);
+
   box-sizing: border-box;
   display: flex;
   align-items: center;
@@ -44,11 +58,20 @@
   width: var(--vgui-min-target-size, 24px);
   height: var(--vgui-min-target-size, 24px);
   padding: calc((var(--vgui-min-target-size, 24px) - var(--vgui-icon-size, 16px)) / 2);
-  /* `render_bg {}` — draw nothing behind the glyph, ever. */
-  background-color: transparent;
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: var(--vgui-icon-size, 16px);
+  /*
+   * `render_bg {}` — nothing is ever drawn *behind* a glyph. The glyph itself is
+   * painted as a MASK over `background-color`, so it follows the theme's tokens
+   * instead of being baked into an image; a `data:` URI cannot read a CSS
+   * variable. Every `icon_button_*` state sprite is the same shape and the same
+   * 16x16 size, so the four states are reproduced by the mask's colour rather
+   * than by swapping the image — and a consumer who points `--vgui-toolbar-back`
+   * at Valve's real `icon_button_back.png` gets the original four tints for free,
+   * because the sprites are grey-with-alpha and mask cleanly.
+   */
+  background-color: var(--vgui-toolbar-glyph);
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: var(--vgui-icon-size, 16px);
   border: 0;
   border-radius: 0;
   font: inherit;
@@ -57,85 +80,48 @@
   /* No transition: the sprite swaps instantly. */
 }
 
-/* --- Browser chrome glyphs: five glyphs x four sprites, no other states --- */
+/* --- Browser chrome glyphs: five glyphs, four tinted states each --- */
 
 .vgui-toolbar__button--back {
-  background-image: url(/icons/icon_button_back.png);
-}
-.vgui-toolbar__button--back:hover {
-  background-image: url(/icons/icon_button_back_over.png);
-}
-.vgui-toolbar__button--back:active {
-  background-image: url(/icons/icon_button_back_down.png);
-}
-.vgui-toolbar__button--back:disabled {
-  background-image: url(/icons/icon_button_back_disabled.png);
+  mask-image: var(--vgui-toolbar-back, url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M10.5 2.5 L4.5 8 L10.5 13.5' fill='none' stroke='white' stroke-width='2'/%3E%3C/svg%3E"));
 }
 
 .vgui-toolbar__button--forward {
-  background-image: url(/icons/icon_button_forward.png);
-}
-.vgui-toolbar__button--forward:hover {
-  background-image: url(/icons/icon_button_forward_over.png);
-}
-.vgui-toolbar__button--forward:active {
-  background-image: url(/icons/icon_button_forward_down.png);
-}
-.vgui-toolbar__button--forward:disabled {
-  background-image: url(/icons/icon_button_forward_disabled.png);
+  mask-image: var(--vgui-toolbar-forward, url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M5.5 2.5 L11.5 8 L5.5 13.5' fill='none' stroke='white' stroke-width='2'/%3E%3C/svg%3E"));
 }
 
 .vgui-toolbar__button--home {
-  background-image: url(/icons/icon_button_home.png);
-}
-.vgui-toolbar__button--home:hover {
-  background-image: url(/icons/icon_button_home_over.png);
-}
-.vgui-toolbar__button--home:active {
-  background-image: url(/icons/icon_button_home_down.png);
-}
-.vgui-toolbar__button--home:disabled {
-  background-image: url(/icons/icon_button_home_disabled.png);
+  mask-image: var(--vgui-toolbar-home, url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M2 7.5 L8 2.5 L14 7.5' fill='none' stroke='white' stroke-width='2'/%3E%3Cpath d='M4 7.5 v6 h8 v-6' fill='none' stroke='white' stroke-width='2'/%3E%3C/svg%3E"));
 }
 
 .vgui-toolbar__button--reload {
-  background-image: url(/icons/icon_button_reload.png);
-}
-.vgui-toolbar__button--reload:hover {
-  background-image: url(/icons/icon_button_reload_over.png);
-}
-.vgui-toolbar__button--reload:active {
-  background-image: url(/icons/icon_button_reload_down.png);
-}
-.vgui-toolbar__button--reload:disabled {
-  background-image: url(/icons/icon_button_reload_disabled.png);
+  mask-image: var(--vgui-toolbar-reload, url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M13 8 a5 5 0 1 1 -1.6 -3.7' fill='none' stroke='white' stroke-width='2'/%3E%3Cpath d='M13 2.5 L13 5.5 L10 5.5 Z' fill='white'/%3E%3C/svg%3E"));
 }
 
 .vgui-toolbar__button--stop {
-  background-image: url(/icons/icon_button_stop.png);
-}
-.vgui-toolbar__button--stop:hover {
-  background-image: url(/icons/icon_button_stop_over.png);
-}
-.vgui-toolbar__button--stop:active {
-  background-image: url(/icons/icon_button_stop_down.png);
-}
-.vgui-toolbar__button--stop:disabled {
-  background-image: url(/icons/icon_button_stop_disabled.png);
+  mask-image: var(--vgui-toolbar-stop, url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 3.5 L12.5 12.5 M12.5 3.5 L3.5 12.5' fill='none' stroke='white' stroke-width='2'/%3E%3C/svg%3E"));
 }
 
 /* The one bevelled glyph the corpus names (`FullscreenButton`). */
 .vgui-toolbar__button--controller-bpm {
-  background-image: url(/icons/icon_controller_bpm.png);
+  mask-image: var(--vgui-toolbar-controller-bpm, url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect x='2.5' y='5.5' width='11' height='5' rx='2.5' fill='none' stroke='white' stroke-width='1.5'/%3E%3Crect x='4.5' y='7.5' width='2' height='1.5' fill='white'/%3E%3Ccircle cx='10.5' cy='8' r='1.2' fill='white'/%3E%3C/svg%3E"));
 }
-.vgui-toolbar__button--controller-bpm:hover {
-  background-image: url(/icons/icon_controller_bpm_over.png);
+
+/*
+ * The four states. The corpus swaps a differently-shaded sprite; because every
+ * `icon_button_*` sprite is the same shape, the readable equivalent is a tint
+ * change, which survives the consumer supplying their own art and keeps the
+ * glyph legible in every theme (see the component doc's accessibility section).
+ */
+.vgui-toolbar__button:hover,
+.vgui-toolbar__button:focus-visible,
+.vgui-toolbar__button:active,
+.vgui-toolbar__button[aria-pressed='true'] {
+  background-color: var(--vgui-toolbar-glyph-active);
 }
-.vgui-toolbar__button--controller-bpm:active {
-  background-image: url(/icons/icon_controller_bpm_down.png);
-}
-.vgui-toolbar__button--controller-bpm:disabled {
-  background-image: url(/icons/icon_controller_bpm_disabled.png);
+
+.vgui-toolbar__button:disabled {
+  background-color: var(--vgui-toolbar-glyph-disabled);
 }
 
 /*
@@ -173,14 +159,18 @@
   width: auto;
   height: var(--vgui-toolbar-button-size, 24px);
   padding: 0 8px;
-  background-image: none;
+  /* No glyph: with `mask-image: none` the mask is opaque everywhere, so the
+     glyph paint has to be cleared or the button becomes a solid rectangle. */
+  mask-image: none;
+  background-color: transparent;
   white-space: nowrap;
 }
 
 /* --- `--raised`: the `FullscreenButton` bevel --- */
 
 .vgui-toolbar--raised .vgui-toolbar__button {
-  background-color: transparent;
+  /* The bevel is a border, not a fill: `bgcolor` stays the glyph mask's paint,
+     so this rule must not reset `background-color`. */
   border-top: var(--vgui-bevel-width) solid var(--vgui-bevel-light);
   border-left: var(--vgui-bevel-width) solid var(--vgui-bevel-light);
   border-right: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);

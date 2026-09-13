@@ -178,17 +178,27 @@ buttons and must be operable from the keyboard.
 
 ## States
 
-| State | Background | Glyph |
-| --- | --- | --- |
-| Bare, idle | none | `icon_button_*` |
-| Bare, hover | none — unchanged | `icon_button_*_over` |
-| Bare, active | none — unchanged | `icon_button_*_down` |
-| Bare, disabled | none — unchanged | `icon_button_*_disabled` |
-| Bare, focus | *unspecified* | *unspecified* |
-| Bevelled, idle | bevel top/left `#808080`, bottom/right `#282E22` | `icon_controller_bpm` |
-| Bevelled, hover | unchanged | `..._over` |
-| Bevelled, active | **bevel rotated** | `..._down` |
-| Bevelled, disabled | unspecified | `..._disabled` |
+| State | Corpus background | Corpus glyph | Shipped glyph tint |
+| --- | --- | --- | --- |
+| Bare, idle | none | `icon_button_*` | `--vgui-clay-glyph-dim` `#A6ACA2` |
+| Bare, hover | none — unchanged | `icon_button_*_over` | `--vgui-clay-glyph` `#ADB5A8` |
+| Bare, active | none — unchanged | `icon_button_*_down` | `--vgui-clay-glyph` + the pressed bevel when `--raised` |
+| Bare, disabled | none — unchanged | `icon_button_*_disabled` | `--vgui-text-disabled` `#75806F` |
+| Bare, focus | *unspecified* | *unspecified* | `--vgui-clay-glyph` + the library focus ring |
+| Bevelled, idle | bevel top/left `#808080`, bottom/right `#282E22` | `icon_controller_bpm` | as above |
+| Bevelled, hover | unchanged | `..._over` | as above |
+| Bevelled, active | **bevel rotated** | `..._down` | as above |
+| Bevelled, disabled | unspecified | `..._disabled` | as above |
+
+**Why the state is a tint and not a second image.** All four `icon_button_*`
+sprites for one glyph are the same shape — they differ only in shading, which is
+what you would expect from a four-sprite state set whose files are byte-for-byte
+the same size. The library paints the glyph as a `mask-image` over
+`background-color`, so the four states are four colours over one mask. This has
+two consequences worth knowing: the tint follows the theme instead of being baked
+into an image, and a consumer who supplies Valve's own `icon_button_*.png`
+(all grey-with-alpha) gets the original sprite behaviour without changing
+anything else. See `docs/assets.md`.
 
 ## Tokens
 
@@ -202,10 +212,20 @@ buttons and must be operable from the keyboard.
 | `--vgui-bevel-light` | `#899281` | *(community `BorderBright`)* |
 | `--vgui-bevel-dark` | `#292D23` | *(community `BorderDark`)* |
 | `--vgui-toolbar-bg` | transparent | No block defines one — **new token, value `transparent`** |
+| `--vgui-toolbar-glyph` | `--vgui-clay-glyph-dim` | Idle glyph tint — **new, component-local** |
+| `--vgui-toolbar-glyph-active` | `--vgui-clay-glyph` | Hover/focus/active/pressed glyph tint — **new** |
+| `--vgui-toolbar-glyph-disabled` | `--vgui-text-disabled` | Disabled glyph tint — **new** |
+| `--vgui-toolbar-<glyph>` | *SVG stand-in* | Per-glyph mask override: `back`, `forward`, `home`, `reload`, `stop`, `controller-bpm` |
 
 `--vgui-toolbar-bg: transparent` is a token whose value is "nothing". It exists
 so that a theme which wants a toolbar strip can set it once rather than adding a
 background to each button, and so that the default is visibly deliberate.
+
+The six `--vgui-toolbar-<glyph>` variables are the asset seam: unset, each glyph
+is the procedural stand-in described in `docs/assets.md`; set to a `url()` of a
+real sprite (or a second `data:` URI), they replace it. They are read as the
+first argument of `mask-image`, so the supplied art is still tinted by the three
+`--vgui-toolbar-glyph*` colours.
 
 ## CSS recipe
 
@@ -226,21 +246,29 @@ background to each button, and so that the default is visibly deliberate.
   width: var(--vgui-icon-size, 16px);
   height: var(--vgui-icon-size, 16px);
   padding: 0;
-  /* render_bg {} — no background, no border, no shadow, ever. */
-  background-color: transparent;
+  /* `render_bg {}` — nothing is drawn BEHIND the glyph. The glyph itself is a
+     mask over `background-color`, so it can follow the theme's tokens. */
+  background-color: var(--vgui-toolbar-glyph);   /* 24px target: see Accessibility */
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: var(--vgui-icon-size, 16px);
   border: 0;
   border-radius: 0;
-  background-repeat: no-repeat;
-  background-position: center;
   cursor: default;
   /* No transition: the sprite swaps instantly. */
 }
 
-/* The state is a different IMAGE, not a different background. */
-.vgui-toolbar__button--back              { background-image: url(/icons/icon_button_back.png); }
-.vgui-toolbar__button--back:hover        { background-image: url(/icons/icon_button_back_over.png); }
-.vgui-toolbar__button--back:active       { background-image: url(/icons/icon_button_back_down.png); }
-.vgui-toolbar__button--back:disabled     { background-image: url(/icons/icon_button_back_disabled.png); }
+/* The state is a different SHADE of the same glyph, not a second element. */
+.vgui-toolbar__button--back {
+  mask-image: var(--vgui-toolbar-back, url("data:image/svg+xml,…"));
+}
+/* …forward, home, reload, stop, controller-bpm likewise */
+
+.vgui-toolbar__button:hover,
+.vgui-toolbar__button:focus-visible,
+.vgui-toolbar__button:active,
+.vgui-toolbar__button[aria-pressed='true'] { background-color: var(--vgui-toolbar-glyph-active); }
+.vgui-toolbar__button:disabled             { background-color: var(--vgui-toolbar-glyph-disabled); }
 
 /* Per-glyph optical corrections — these are the corpus's own insets, converted
    from VGUI's "left top right bottom" inset into padding. Do not "tidy" them to
@@ -398,13 +426,18 @@ disabled}` with no other variation. It is also the clearest evidence for point 2
 above, because a four-sprite state set only makes sense if the *sprite* is the
 state.
 
-`graphics/icon_controller_bpm{,_over,_down,_disabled}` — referenced by
-`FullscreenButton` (`steam.styles:2770–2789`) — are **missing from this corpus
-copy**. The block names them; the files are not present. Any bevelled toolbar
-button therefore has no art at all today.
+**Assets: closed by not shipping art.** This package ships **no image assets, by policy** —
+no `public/`, no `src/assets/` — so `Toolbar` cannot reference
+`/icons/icon_button_back.png` and expect it to exist. Instead every glyph is
+drawn procedurally through `mask-image` and every one is overridable with a
+`--vgui-toolbar-<glyph>` variable. The full policy, and the inventory of what the
+sibling repos *do* have, is in `docs/assets.md`.
 
-**Art gap:** `F:\steam-style\steam-style-react\` ships **no image assets** — no
-`public/`, no `src/assets/`. See `docs/assets.md`.
+The corpus copy of the five browser glyphs is complete (four states each), but
+the files are `.tga` and are Valve's copyrighted artwork, so they can be neither
+bundled nor converted into the published package. `icon_controller_bpm` is not
+present in the corpus at all, so the bevelled variant's glyph is a stand-in
+whatever happens.
 
 ## Examples
 

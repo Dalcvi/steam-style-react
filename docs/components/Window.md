@@ -36,12 +36,12 @@ Frame:FrameFocus
 
 | Element | Position |
 | --- | --- |
-| Titlebar | full width, **28px** tall (Valve) / **18px** (CSS port) |
+| Titlebar | full width, **18px** tall |
 | Icon button | `20 × 20`, `ypos 8`, `xpos` from the left |
 | Minimize | `20 × 20`, `ypos 8`, right-aligned at `r50` |
 | Maximize | `20 × 20`, `ypos 8`, right-aligned at `r72` |
 | Close | `20 × 20`, `ypos 8`, right-aligned at `r28` |
-| Resize grip | `14 × 14` (Valve) / `12 × 12` (CSS port), bottom-right |
+| Resize grip | `12 × 12`, bottom-right |
 
 > The right-aligned offsets (28, 50, 72) are measured **from the right edge**, so
 > close sits nearest the corner and the buttons run right-to-left in order
@@ -52,7 +52,7 @@ Frame:FrameFocus
 
 ```
 .vgui-window                                  ← beveled surface + position context
-├── .vgui-window__titlebar                    ← 18/28px drag handle
+├── .vgui-window__titlebar                    ← 18px drag handle
 │   ├── .vgui-window__icon                    ← optional 16px app glyph
 │   ├── .vgui-window__title                   ← uppercase caption
 │   └── .vgui-window__controls
@@ -69,7 +69,7 @@ Frame:FrameFocus
 | --- | --- |
 | Normal | Raised bevel, `--vgui-surface` body, `--vgui-text-strong` title |
 | Focused | "Focused" bevel — Valve lights the frame border when the window has focus. In practice: swap `--vgui-bevel-light` for `--vgui-bevel-light-strong` (`#B8C4AD`) and use `--vgui-clay-glyph` for the control glyphs. |
-| Unfocused | Control glyphs drop to `--vgui-clay-glyph-dim` (`#A6ACA2`) and the title dims to `--vgui-text-muted` |
+| Unfocused | Control glyphs drop to `--vgui-clay-glyph-dim` (`#A6ACA2`). The **title does not dim** — see the note under *Tokens*. |
 | Dragging | Bevel unchanged; cursor becomes `move`, `user-select: none` on the titlebar |
 | Maximized | Grip hidden, `inset: 0`, no border radius, `width/height: 100%` |
 | Minimizing | No animation in VGUI — do not invent a scale transition |
@@ -86,10 +86,17 @@ buttons each have their own hover treatment.
 | `--vgui-bevel-light` `#899281` | Raised top/left; unfocused border |
 | `--vgui-bevel-dark` `#292D23` | Raised bottom/right |
 | `--vgui-bevel-light-strong` `#B8C4AD` | Focused border highlight |
-| `--vgui-text-strong` `#FFFFFF` | Title text |
-| `--vgui-text-muted` `#A0AA95` | Title text when unfocused |
+| `--vgui-text-strong` `#FFFFFF` | Title text, focused **and** unfocused |
 | `--vgui-clay-glyph` `#ADB5A8` | Control glyphs, focused |
 | `--vgui-clay-glyph-dim` `#A6ACA2` | Control glyphs, unfocused |
+
+> **The title never dims.** Valve dims an unfocused caption to `TitleDimText`
+> `#889180`; on a `GreenBG` window body that is **2.31:1**, far below the 4.5:1
+> WCAG 1.4.3 asks for. The accessibility section below resolves this in favour of
+> keeping the caption at `--vgui-text-strong` (**7.54:1**, AAA) in both states and
+> signalling focus through the bevel and the glyphs instead. An earlier draft of
+> this doc said the caption dims to `--vgui-text-muted`; that was the *States*
+> table losing to the *Accessibility* section, which it does not.
 
 ## CSS recipe
 
@@ -220,10 +227,10 @@ Notes:
 - `user-select: none` on the titlebar is correct; do not spread it to the body.
 - The unicode glyphs `–`, `□`, `×` are fine as a fallback but render
   inconsistently across platforms. Prefer the SVG data URIs in §Assets.
-- Contrast: title is `#FFFFFF` on `#4C5844` = **7.54:1** (AAA). Unfocused title
-  at `#A0AA95` on `#4C5844` is **3.0:1** — below AA for small text, so the
-  *focused* state must not be the only way to read the title. Keep the title at
-  `--vgui-text-strong` and dim only the glyphs.
+- Contrast: title is `#FFFFFF` on `#4C5844` = **7.54:1** (AAA). Valve dims the
+  unfocused caption to `TitleDimText` `#889180`, which would be **2.31:1** — so
+  the caption stays at `--vgui-text-strong` in both states and only the glyphs
+  dim. Focus is still fully conveyed: the bevel swaps and the glyphs brighten.
 
 ## Assets
 
@@ -257,12 +264,10 @@ better option because it recolours for free under every theme variant.
 
 ## Open questions
 
-- **Titlebar height.** Valve's `LayoutTemplates` say `28px`; the CSS port uses
-  `18px`. This doc follows the port for consistency with `Panel`, but the
-  difference should be resolved once and applied everywhere.
 - **Dragging implementation.** Nothing in the VGUI sources indicates whether the
   max/min buttons should be `20 × 20` at `ypos 8` (Valve) or inline in the flow
-  (CSS port). The layout above follows the CSS port because it survives a 28px
-  titlebar if that change lands.
+  (CSS port). The layout above follows the CSS port, and because the titlebar is
+  resolved to `18px` (see `foundations.md` §6) the buttons are inset vertically
+  rather than matching the bar height — that is the shipped behaviour.
 - Valve ships **no** `Frame` close-confirmation behaviour; `MessageBox` handles
   that as a separate window. Do not add an `onBeforeClose` gate to `Window`.

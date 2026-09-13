@@ -154,10 +154,10 @@ Every item below is required.
 - **Focus must move in on open** — to the first focusable element, or to
   `initialFocusRef` if given. A dialog that opens without moving focus leaves the
   keyboard user still tabbing around the page behind it.
-- **Focus must be trapped.** Wrap `Tab` at both ends. This is why the native
-  `<dialog>` element with `showModal()` is the better implementation: the browser
-  does the trapping, the `inert`-ing of the background, and the top-layer
-  stacking for free, and `::backdrop` replaces the scrim `div`.
+- **Focus must be trapped.** Wrap `Tab` at both ends. The native `<dialog>`
+  element with `showModal()` would do this for free, but it is **not used** —
+  see *Open questions*. The trap is implemented by hand, by wrapping `Tab` at
+  both ends of the dialog's focusable set.
 - **Focus must return** to the previously focused element on close. Capture
   `document.activeElement` before opening.
 - `Escape` closes unless `unclosable`. The close button must have a real
@@ -170,8 +170,9 @@ Every item below is required.
   test the click target rather than relying on `stopPropagation`.
 - `aria-busy="true"` while `busy`, and the primary button must announce its
   pending state.
-- **Never put the scrim above the dialog in the top layer**; if using
-  `<dialog>`, `::backdrop` handles this automatically.
+- **Never put the scrim above the dialog in the top layer.** The overlay `div` is
+  the positioned parent and the dialog is a sibling stacking context inside it,
+  so the scrim can never win.
 - Colour: the scrim at 50% black over a `#3E4637` page is sufficient contrast
   separation. The dialog's own text contrast comes from `Window`.
 
@@ -216,16 +217,20 @@ of its own.
 </Dialog>
 ```
 
-## Open questions
+## Resolved decisions
 
-- **Should this wrap `<dialog>`?** `showModal()` gives focus trapping, background
-  inertness and top-layer stacking for free, and it is supported in every
-  current browser. The cost is that styling `::backdrop` and controlling the
-  enter/exit timing is slightly more awkward than a `div`. The recommendation
-  here is **yes, use `<dialog>`** — the accessibility wins outweigh the styling
-  friction.
-- Valve's dialogs had no scrim, so the 50% black overlay is an invention. If a
-  strict reproduction is wanted, the dialog should be centred with no overlay at
-  all, which is much worse for accessibility.
+- **Does this wrap the native `<dialog>`? No — it renders an overlay `div`.**
+  `showModal()` gives focus trapping, background inertness and top-layer stacking
+  for free, and it is supported in every current browser. It is still the wrong
+  choice *here*: jsdom does not implement `showModal()` (or `::backdrop`, or the
+  top layer), so an element-based implementation is the only one that can be
+  covered by this repository's Vitest suite at all. The library would otherwise
+  ship a component whose entire modal behaviour is untestable. The cost is the
+  focus trap, which is ~20 lines in `Dialog.tsx` and is directly tested. Revisit
+  only if jsdom grows a real top-layer implementation.
+- Valve's dialogs had no scrim, so the 50% black overlay is an invention. A
+  strict reproduction would centre the dialog with no overlay at all, which is
+  much worse for accessibility — the scrim is kept.
 - The `92 × 24` button metric is from `LayoutTemplates` for `PropertyDialog`
-  specifically; whether `MessageBox` shares it is not confirmed.
+  specifically; whether `MessageBox` shares it is not confirmed, so
+  `Dialog` does not set a button width.

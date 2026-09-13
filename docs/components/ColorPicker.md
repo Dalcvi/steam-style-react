@@ -424,8 +424,8 @@ swatch is a coloured `div`, the arrow is the 7×4 staircase from `Scrollbar.md`
 (drawn with `fill()` in the original, a `clip-path` here), and the panel is the
 standard raised bevel. There is nothing to license.
 
-**Art gap:** `F:\steam-style\steam-style-react\` ships **no image assets at
-all** — no `public/`, no `src/assets/`. The one asset that *would* be natural
+**Assets:** `F:\steam-style\steam-style-react\` ships **no image assets, by
+policy** — no `public/`, no `src/assets/`. The one asset that *would* be natural
 here is the port's `sliderticks.png` (**15×5**, the alpha/hue slider ticks,
 `F:\steam-style\vgui.css\styles\greensteam\sliderticks.png`), but the tick marks
 are trivially reproducible with a repeating gradient, so the gap does not block

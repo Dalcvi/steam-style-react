@@ -78,7 +78,14 @@ a panel on hover. Do not add one.
 | `--vgui-bevel-dark` `#292D23` | Raised `border-bottom` + `border-right` |
 | `--vgui-text-strong` `#FFFFFF` | Titlebar text |
 | `--vgui-font` | Titlebar font stack |
+| `--vgui-titlebar-height` `18px` | Titlebar height; see the note below |
 | `--vgui-line-height` `1.25` | — |
+
+> **Titlebar height is `18px`, everywhere.** Valve's `LayoutTemplates` give a
+> `Frame` a `28px` titlebar, but the CSS port — this library's direct upstream —
+> uses `18px`, and `Panel`, `Window` and `TitleBar` all share the single
+> `--vgui-titlebar-height` token. The `28px` figure is recorded in
+> `foundations.md` §6 and deliberately not used.
 
 ## CSS recipe
 
@@ -188,6 +195,3 @@ None. The panel is pure CSS — this is the one component where Valve used a
 - `panel--rounded` removes the border entirely, so it has **no** non-text
   boundary cue at all. If it ships, it needs `outline: 1px solid
   var(--vgui-bevel-dark)` or a background shift to satisfy 1.4.11.
-- Valve's `LayoutTemplates` give a `Frame` a `28px` titlebar; the CSS port uses
-  `18px`. The panel doc follows the port (`18px`) and `Window` follows Valve
-  (`28px`), which is inconsistent. Worth resolving in favour of one number.

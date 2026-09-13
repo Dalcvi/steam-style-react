@@ -379,10 +379,10 @@ Where a React-level API is needed, expose `RichTextLink`, `RichTextBold` and
 (`steam.styles:1935–1956`); it references no image. `RichTextCorner`
 (`:283`) is a colour, not a file, and nothing uses it.
 
-**Art gap:** `F:\steam-style\steam-style-react\` ships **no image assets** — no
+**Assets:** `F:\steam-style\steam-style-react\` ships **no image assets, by policy** — no
 `public/`, no `src/assets/`. `RichText` is unaffected because it needs none; the
-inventory of sprites the library *does* eventually need, and the two sanctioned
-ways of replacing them (inline SVG `data:` URIs and pure CSS geometry), are in
+inventory of sprites the library would like, and the sanctioned ways of replacing
+them (inline SVG `data:` URIs and pure CSS geometry), are in `docs/assets.md` and
 `foundations.md` §7.
 
 ## Examples

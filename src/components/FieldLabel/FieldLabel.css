@@ -28,7 +28,7 @@
   line-height: var(--vgui-line-height);
   max-inline-size: 100%;
   overflow-wrap: anywhere;
-  color: var(--vgui-text-muted);
+  color: var(--vgui-text);
   text-transform: none;
   letter-spacing: 0;
 }
@@ -48,8 +48,18 @@
   color: var(--vgui-text-strong);
 }
 
+/*
+ * The default caption is `--vgui-text` `#D8DED3` (**5.49:1** on `--vgui-surface`),
+ * not the classic `Label` grey `#A0AA95` (**3.11:1**), because a form caption is
+ * body text and 3.11:1 fails WCAG 1.4.3. The `Label` grey survives as the
+ * `--muted` variant, where it belongs — it reaches 4.06:1 on the
+ * `--vgui-surface-dark` `#3E4637` interiors that motivated it in the first
+ * place. The header comment above describes the corpus, not this decision; see
+ * docs/components/FieldLabel.md §Accessibility.
+ */
+
 .vgui-field-label--muted {
-  color: var(--vgui-text-dim);
+  color: var(--vgui-text-muted);
 }
 
 .vgui-field-label--heading {

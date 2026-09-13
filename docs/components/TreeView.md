@@ -283,8 +283,8 @@ export interface TreeViewProps {
   `minimize`/`minimize2`, `download`/`download_pressed`, `radio_off`/`radio_on`,
   `resize`, four scroll arrows, `sliderticks`, `steamico`); **none is a tree
   glyph**.
-- **Art gap:** `F:\steam-style\steam-style-react\` ships **no image assets** — no
-  `public/`, no `src/assets/`. See `docs/assets.md`.
+- **Assets:** this package ships **no image assets, by policy** — no `public/`,
+  no `src/assets/`. See `docs/assets.md`.
 
 ## Examples
 

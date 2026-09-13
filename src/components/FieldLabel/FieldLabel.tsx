@@ -8,9 +8,9 @@ export interface FieldLabelProps extends LabelHTMLAttributes<HTMLLabelElement> {
   children?: ReactNode
   /** Render a <span> instead of a <label>, for standalone explanatory text. */
   asText?: boolean
-  /** Emphasis: strong white text rather than the muted default. */
+  /** Emphasis: strong white text rather than the default caption colour. */
   strong?: boolean
-  /** De-emphasis for empty states and secondary explanations. */
+  /** The classic Label grey `#A0AA95`, for captions on a darker surface. */
   muted?: boolean
   /** Use the maize heading colour, for a label acting as a section title. */
   heading?: boolean

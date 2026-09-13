@@ -551,8 +551,8 @@ the column chooser reuses `icon_expand`, the *section collapser* glyph, for a
 completely different job; there is no dedicated chooser sprite.
 
 The port's green asset set contains **none** of these; it has no server-browser
-art at all. `F:\steam-style\steam-style-react\` ships **no image assets** — no
-`public/`, no `src/assets/`. See `docs/assets.md`.
+art at all. This package ships **no image assets, by policy** — no `public/`, no
+`src/assets/`. See `docs/assets.md`.
 
 ## Examples
 

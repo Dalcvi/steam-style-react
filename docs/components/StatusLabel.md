@@ -196,7 +196,7 @@ The optional leading dot — a small filled circle before the text, used to conv
 | Hover | `--vgui-text-strong` (`White`) — **colour only** | `steam.styles:2389-2392` |
 | Focus-visible | Inherited ring from `foundations.md` §4 | *(library policy)* |
 | Active | Not declared — inherit focus treatment | *(none)* |
-| Disabled | **Not declared in the corpus.** Fall back to the shared sunken disabled treatment | see below |
+| Disabled | `--vgui-text-dim` `#758666` only — no shadow | library decision, see below |
 
 The corpus declares no disabled state for `StatusLabel` at all. Two options, and
 the choice matters:
@@ -204,25 +204,29 @@ the choice matters:
 1. **Extend `FieldLabel`'s treatment** — `--vgui-text-disabled` `#75806F` with a
    `1px 1px 0 --vgui-text-disabled-shadow` `#282E22` shadow. Consistent with the
    rest of the theme, but it *adds* a convention the corpus does not have here.
-2. **Do not render a disabled status label at all.** A status indicator that is
-   disabled is not a meaningful thing; if the app is idle, the status string
-   should say so. This is the recommended behaviour: `disabled` is accepted for
-   API symmetry, maps to `aria-disabled`, and dims the text with
-   `--vgui-text-dim` **only** — no shadow.
+2. **Dim only, or do not render one at all.** A status indicator that is disabled
+   is barely a meaningful thing; if the app is idle, the status string should say
+   so.
+
+**Shipped: option 2, via an opt-in `disabled` prop.** `disabled` adds
+`aria-disabled="true"` and `data-disabled="true"` and dims the text with
+`--vgui-text-dim` **only** — no shadow, no bevel, and no change to the element it
+renders. It exists for API symmetry with `FieldLabel`, not because the corpus
+calls for it; the preferred answer is still to write a status that says what is
+actually happening.
 
 Because a disabled status label has no interaction, and `--vgui-text-dim` on
-`--vgui-surface` is 1.92:1 (`foundations.md:440`), option 2 must pair the dimming
-with a non-colour cue if the state actually matters to the user.
+`--vgui-surface` is 1.92:1 (`foundations.md:440`), a disabled label cannot rely
+on colour alone to communicate anything. It is decoration on top of a string the
+user can already read.
 
 ## Tokens
 
 | Token | Where |
 | --- | --- |
 | `--vgui-text-muted` `#A0AA95` | Default text |
-| `--vgui-text-strong` `#FFFFFF` | Hover text |
-| `--vgui-text-dim` `#758666` | Optional disabled text |
-| `--vgui-heading` `#C4B550` | Optional busy/working state |
-| `--vgui-steam-green` `#7EA64B` | Optional "online"/running dot |
+| `--vgui-text-strong` `#FFFFFF` | Hover text, and `--strong` |
+| `--vgui-text-dim` `#758666` | `--disabled` text |
 | `--vgui-accent` `#C4B550` | Focus ring |
 | `--vgui-font` | Font family |
 | `--vgui-font-size` `14px` | Font size |
@@ -316,6 +320,8 @@ export interface StatusLabelProps
   accessiblePrefix?: string
   /** Renders a polite live region so changes are announced. */
   live?: 'off' | 'polite' | 'assertive'
+  /** Dim the text with `--vgui-text-dim` only — no shadow — and expose `aria-disabled`. */
+  disabled?: boolean
 }
 ```
 
@@ -442,8 +448,10 @@ has no circular mask, and Valve never used one for this control.
   two `.styles`, one `.res`, one `.menu`, nineteen `.layout` and a graphics tree,
   and no text tables at all).
 - **The disabled treatment is inherited, not sourced.** The corpus has no
-  disabled state for `StatusLabel`. The recommendation above (dim only, or do
-  not render) is a library decision, not a Valve one.
+  disabled state for `StatusLabel`. The `disabled` prop (`aria-disabled` plus a
+  `--vgui-text-dim` dim, no shadow) is a library decision, not a Valve one, and
+  the preferred answer is still to write a status string that says what is
+  happening.
 - **`--with-dot` and `--strong` have no corpus precedent.** They are useful
   extensions; they should stay behind explicit props so the default output
   remains a literal transcription of `steam.styles:2380`.

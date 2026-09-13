@@ -96,6 +96,32 @@ describe('StatusLabel', () => {
     expect(label).toHaveAttribute('data-state', 'idle')
   })
 
+  it('marks a disabled label with aria-disabled and data-disabled', () => {
+    render(<StatusLabel disabled>Idle</StatusLabel>)
+
+    const label = screen.getByText('Idle')
+    expect(label).toHaveAttribute('aria-disabled', 'true')
+    expect(label).toHaveAttribute('data-disabled', 'true')
+  })
+
+  it('lets an explicit aria-disabled override the disabled prop', () => {
+    render(
+      <StatusLabel disabled aria-disabled="false">
+        Idle
+      </StatusLabel>,
+    )
+
+    expect(screen.getByText('Idle')).toHaveAttribute('aria-disabled', 'false')
+  })
+
+  it('leaves a default label without disabled attributes', () => {
+    render(<StatusLabel>Downloading</StatusLabel>)
+
+    const label = screen.getByText('Downloading')
+    expect(label).not.toHaveAttribute('aria-disabled')
+    expect(label).not.toHaveAttribute('data-disabled')
+  })
+
   it('forwards the ref to the span element', () => {
     const ref = createRef<HTMLElement>()
     render(<StatusLabel ref={ref}>Downloading</StatusLabel>)
@@ -127,7 +153,7 @@ describe('StatusLabel', () => {
         <StatusLabel live="polite" accessiblePrefix="Status:">
           47%
         </StatusLabel>
-        <StatusLabel aria-disabled="true">Idle</StatusLabel>
+        <StatusLabel disabled>Idle</StatusLabel>
       </div>,
     )
 

@@ -454,8 +454,8 @@ The library therefore draws the placeholder as `::after` content (initials, or a
 neutral glyph), coloured `--vgui-text-strong` per `Friends.NoAvatarOver`. No
 `.tga`, no bitmap, nothing to license.
 
-**Art gap:** `F:\steam-style\steam-style-react\` ships **no image assets at
-all** — no `public/`, no `src/assets/`. That is unusually convenient here: no
+**Assets:** `F:\steam-style\steam-style-react\` ships **no image assets, by
+policy** — no `public/`, no `src/assets/`. That is unusually convenient here: no
 avatar placeholder sprite has to be replaced, because the original had none for
 avatars either (the album-art placeholder above belongs to the music player, not
 to this component). The

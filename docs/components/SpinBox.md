@@ -445,8 +445,8 @@ asset-free, license-free, and — because both arrows come from one primitive �
 guaranteed to be visually consistent, which is more than the corpus's own set is
 (`icon_down_*` at 9×6 vs `icon_right_*` at 13×13 are two different weights).
 
-**Art gap:** `F:\steam-style\steam-style-react\` ships **no image assets at
-all** — no `public/`, no `src/assets/`. For most components that is a blocker;
+**Assets:** `F:\steam-style\steam-style-react\` ships **no image assets, by
+policy** — no `public/`, no `src/assets/`. For most components that is a blocker;
 here it is a *relief*, because the component's natural artwork is precisely the
 half that the corpus lost (`icon_up_*`). `foundations.md` §7 rules binary
 sprites out and prescribes inline SVG `data:` URIs or pure CSS geometry; the

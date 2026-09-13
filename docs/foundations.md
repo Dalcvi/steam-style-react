@@ -252,9 +252,9 @@ one stack, which is a deliberate simplification worth documenting.
 | Button text inset | `4px 0 0 0`, `text-align: left` | `steam.styles` |
 | Checkbox / radio | `15 × 15px` | `steam_shared.css` |
 | Text input inset | `4px 0 4px 0` | `steam.styles` |
-| Titlebar height | `18px` (web) / `28px` (Valve `LayoutTemplates`) | both |
+| Titlebar height | `18px` | `steam_shared.css` |
 | Frame control buttons | `20 × 20px` at `ypos 8` | `steamscheme.res` |
-| Frame resize grip | `14 × 14px` (Valve) / `12 × 12px` (web) | both |
+| Frame resize grip | `12px` | `steam_shared.css` |
 | Scrollbar width | `18px` | `steam_shared.css` |
 | Scrollbar button | `18 × 18px` | `steam_shared.css` |
 | Progress bar height | `26px` outer, `16px` fill, `4px` gutter | `steam_shared.css` |
@@ -264,6 +264,13 @@ one stack, which is a deliberate simplification worth documenting.
 
 A recurring spacing scale falls out of these: **2, 4, 6, 8, 10, 12, 18, 20,
 25, 26**. There is no 4px/8px grid — do not impose one.
+
+**Two Valve-only figures are recorded but deliberately not used.** `LayoutTemplates`
+gives a `Frame` a **`28px`** titlebar and a **`14px`** resize grip; the web port — the
+direct upstream of this library — uses **`18px`** and **`12px`**, and every component
+follows the port. See §11 for why the port wins ties. One consequence is worth
+noting: `Window`'s titlebar is `18px`, which is *shorter* than the `20px` frame
+control buttons, so the controls are inset vertically rather than matching the bar.
 
 ---
 
@@ -336,6 +343,10 @@ pixel-identical to the original.
 
 Use **(a)** for anything with a distinctive silhouette (arrows, frame glyphs,
 the resize grip) and **(b)** for checkmarks and radio dots.
+
+What the two sibling repositories *do* contain, which corpus sprite each
+component draws instead, and the variable a consumer can use to supply their own
+artwork are all in `assets.md`.
 
 **Frame glyphs and the Marlett font.** Valve's minimise, maximise and close
 glyphs come from Marlett, a symbol font shipped with Windows. Marlett is not
@@ -596,6 +607,23 @@ side effect allowed.
 
 **Props.** Public props carry a one-line `/** … */` doc comment so Storybook's
 autodocs table is filled in.
+
+**Resolving a source conflict.** A spec lists the corpus value first and the
+shipped value second, and when the two differ the spec must say so explicitly.
+Three rules break the ties, in order:
+
+1. **Accessibility wins.** When a spec's *Accessibility* section disagrees with
+   its *States* or *Tokens* table, the Accessibility section is normative and the
+   other section is corrected — never the reverse. Two components were resolved
+   this way: `FieldLabel`'s default caption is `--vgui-text` rather than the
+   classic `Label` grey, and `Window` keeps its title at `--vgui-text-strong` when
+   unfocused, dimming only the glyphs.
+2. **The web port beats `LayoutTemplates`.** Where Valve's own layout files and
+   AlpyneDreams' CSS port disagree — titlebar height, resize grip — the port wins,
+   because it is the direct upstream and it is internally consistent.
+3. **One number, applied everywhere.** A component never gets its own value for a
+   shared figure. If two components disagree about a metric, the metric is resolved
+   once and both follow it.
 
 **Validation.** `pnpm run typecheck`, `pnpm test`, `pnpm run build`,
 `pnpm run build-storybook`.

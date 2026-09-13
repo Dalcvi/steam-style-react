@@ -385,8 +385,8 @@ The only glyph a full nav would want is a dropdown arrow, and **the corpus has
 none for this control**. If a chevron is added it should be a CSS triangle or an
 inline SVG, and it must be marked `aria-hidden="true"`.
 
-**Art gap:** `F:\steam-style\steam-style-react\` ships **no image assets** — no
-`public/`, no `src/assets/`. See `docs/assets.md`.
+**Assets:** this package ships **no image assets, by policy** — no `public/`,
+no `src/assets/`. See `docs/assets.md`.
 
 ## Examples
 

@@ -29,3 +29,16 @@ Accessibility notes worth knowing:
   WCAG 2.5.8.
 - Font smoothing stays enabled and `image-rendering: pixelated` is confined to
   `.vgui-crisp`, because both override the user's own rendering preferences.
+
+### Glyphs are drawn, not fetched
+
+No image files ship with the package, so every component that needs a glyph
+draws it from CSS or an inline `data:` URI rather than referencing a sprite.
+`Toolbar` exposes its stand-ins through `--vgui-toolbar-<glyph>` variables, so a
+consumer who holds their own licence for the artwork can drop it in without
+touching the component API. `docs/assets.md` carries the full inventory of what
+the original client used and what each component draws instead.
+
+Two smaller corrections from the same pass: `StatusLabel` gains a `disabled`
+prop (mapping to `aria-disabled` plus a dimmed colour), and `FieldLabel`'s
+default colour is now the body text token rather than the muted one.

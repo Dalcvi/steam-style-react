@@ -7,7 +7,7 @@ import { a11yViolations } from '../../test/a11y'
 import { FieldLabel } from './FieldLabel'
 
 describe('FieldLabel', () => {
-  it('renders a real <label> with the muted default and no modifiers', () => {
+  it('renders a real <label> with the default caption colour and no modifiers', () => {
     const { container } = render(<FieldLabel htmlFor="server-name">Server name</FieldLabel>)
 
     const label = screen.getByText('Server name')

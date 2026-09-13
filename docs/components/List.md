@@ -449,8 +449,8 @@ directly above it reads `//!! bug - this needs to look disabled`
 
 The port's green asset set contains **none** of these ten files; its closest
 equivalents are `checkmark.png` (13×13) and `scroll_up.png`/`scroll_down.png`
-(9×6). **Art gap:** `F:\steam-style\steam-style-react\` ships **no image
-assets** — no `public/`, no `src/assets/`. See `docs/assets.md`.
+(9×6). This package ships **no image assets, by policy** — no `public/`, no
+`src/assets/`. See `docs/assets.md`.
 
 ## Examples
 

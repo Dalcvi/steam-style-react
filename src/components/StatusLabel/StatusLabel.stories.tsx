@@ -16,6 +16,7 @@ const meta = {
     strong: { control: 'boolean' },
     accessiblePrefix: { control: 'text' },
     live: { control: 'inline-radio', options: ['off', 'polite', 'assertive'] },
+    disabled: { control: 'boolean' },
   },
   args: {
     children: 'Downloading…',
@@ -85,7 +86,7 @@ export const States: Story = {
       <StatusLabel {...args} withDot strong>
         Away — idle for 12 minutes
       </StatusLabel>
-      <StatusLabel {...args} aria-disabled="true">
+      <StatusLabel {...args} disabled>
         Idle
       </StatusLabel>
     </div>

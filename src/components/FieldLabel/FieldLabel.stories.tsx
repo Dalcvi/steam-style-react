@@ -13,8 +13,8 @@ const meta = {
       control: 'boolean',
       description: 'Render a <span> instead of a <label>, for standalone explanatory text.'
     },
-    strong: { control: 'boolean', description: 'Emphasis: strong white text rather than the muted default.' },
-    muted: { control: 'boolean', description: 'De-emphasis for empty states and secondary explanations.' },
+    strong: { control: 'boolean', description: 'Emphasis: strong white text rather than the default caption colour.' },
+    muted: { control: 'boolean', description: 'The classic Label grey, for captions on a darker surface.' },
     heading: { control: 'boolean', description: 'Use the maize heading colour, for a label acting as a section title.' },
     error: {
       control: 'boolean',
@@ -42,7 +42,7 @@ const meta = {
 export default meta
 type Story = StoryObj<typeof meta>
 
-/** The muted `Label` grey, 14px — the ordinary caption. */
+/** The ordinary caption: 14px `--vgui-text`, 5.49:1 on a green panel. */
 export const Default: Story = {}
 
 /** Captioning a control: a real `<label for>` focuses the field when clicked. */
@@ -60,7 +60,7 @@ export const Strong: Story = {
   args: { strong: true, children: 'Server name' }
 }
 
-/** Secondary or redundant text only — `--vgui-text-dim` is 1.92:1 on green. */
+/** The classic `Label` grey `#A0AA95` — for captions on a darker surface, where it reaches 4.06:1. */
 export const Muted: Story = {
   args: { muted: true, children: 'No servers match the current filters.' }
 }
