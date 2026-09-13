@@ -2,7 +2,10 @@ name: Release
 
 # Releases @dalcvil/steam-green-react with Changesets (https://changesets.dev).
 #
-# Every push to main runs changesets/action, which either:
+# It never runs on a plain push. It is triggered by the CI workflow finishing
+# on `main` and only proceeds when that run succeeded, so a commit that fails
+# typecheck, the library build or the Storybook build can never produce a
+# release. changesets/action then either:
 #   1. opens/updates the "chore: version packages" pull request while unreleased
 #      changesets exist, or
 #   2. publishes to npm, pushes the release tag and creates the GitHub release
@@ -11,6 +14,11 @@ name: Release
 # Add a changeset to any PR that changes the published package:
 #
 #   pnpm changeset
+#
+# `workflow_dispatch` is kept as a manual escape hatch. GitHub has no way to
+# declare "admins only" on a workflow trigger, so the first step of the job
+# re-checks the actor's repository role and aborts unless it is `admin`. (The
+# dispatch button itself is only shown to users who already have write access.)
 #
 # Publishing authenticates with npm trusted publishing (OIDC): there is no
 # NPM_TOKEN secret and no long-lived credential anywhere in this workflow. The
@@ -32,7 +40,12 @@ name: Release
 # opened.
 
 on:
-  push:
+  # Completes on every CI run; the job-level `if` below drops anything that did
+  # not conclude successfully. `branches` filters on the branch of the CI run,
+  # so pull-request runs are ignored and only pushes to main can release.
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
     branches: [main]
   workflow_dispatch:
 
@@ -48,10 +61,35 @@ permissions:
 jobs:
   release:
     name: Version & publish
+    # A failed CI run must never be able to publish.
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     steps:
+      - name: Require repository admin
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ACTOR: ${{ github.actor }}
+        run: |
+          if ! role=$(gh api "repos/${GITHUB_REPOSITORY}/collaborators/${ACTOR}/permission" --jq .permission); then
+            echo "::error::Could not resolve the repository role for ${ACTOR}."
+            exit 1
+          fi
+          echo "${ACTOR} has repository role: ${role}"
+          if [ "${role}" != "admin" ]; then
+            echo "::error::${ACTOR} is '${role}', not 'admin'. Only admins may run this workflow."
+            exit 1
+          fi
+
+      # workflow_run reports the commit CI validated, which is what should be
+      # released rather than whatever the default branch tip happens to be now.
+      # Full history keeps the tag/release bookkeeping happy.
       - name: Checkout
         uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+          fetch-depth: 0
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v6

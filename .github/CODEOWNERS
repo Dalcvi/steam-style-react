@@ -1,0 +1,10 @@
+# Default owner for everything in the repository.
+#
+# CODEOWNERS only requests a review automatically; to make the review
+# mandatory, enable "Require review from Code Owners" in a branch ruleset on
+# `main`.
+* @Dalcvi
+
+# Release automation and the npm trusted-publisher config it depends on.
+/.github/workflows/release.yml @Dalcvi
+/.changeset/ @Dalcvi
