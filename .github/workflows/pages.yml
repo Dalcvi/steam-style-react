@@ -36,6 +36,10 @@ jobs:
 
       - name: Configure Pages
         uses: actions/configure-pages@v6
+        with:
+          # Turn Pages on via the API if it has not been enabled yet, so the
+          # first deploy does not need a manual Settings → Pages step.
+          enablement: true
 
       - name: Build Storybook
         run: pnpm run build-storybook -- --output-dir storybook-static

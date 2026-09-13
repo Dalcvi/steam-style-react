@@ -101,8 +101,8 @@ own `index.ts` **and** from `src/index.ts`, and add a story next to it.
 
 ### First-time setup
 
-1. **GitHub Pages** — repository *Settings → Pages → Build and deployment →
-   Source: **GitHub Actions***. Storybook is then served from
+1. **GitHub Pages** — nothing to do. The Pages workflow enables Pages via the
+   API on its first run and publishes Storybook to
    `https://<owner>.github.io/<repo>/`.
 2. **npm publishing** — create an npm **Automation** token for the
    `@dalcvi` scope and store it as the repository secret `NPM_TOKEN`.
