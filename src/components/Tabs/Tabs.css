@@ -19,21 +19,38 @@
 .vgui-tabs__strip {
   display: flex;
   align-items: flex-end;
-  /* PropertySheet.TabGap = 3 (steam.styles:337) */
-  gap: var(--vgui-tabs-gap, 3px);
+  /* No gap by default. The tabs' own bevels already separate them, and a gap
+     left the selected tab floating above the shelf. `--vgui-tabs-gap` survives
+     for callers who want the corpus' 3px (PropertySheet.TabGap, :337). */
+  gap: var(--vgui-tabs-gap, 0);
   margin: 0;
   padding: 0;
   /* The rail the selected tab has to erase. */
   border-bottom: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
 }
 
+/* The shelf the strip stands on: as wide as the sheet and `--vgui-tabs-box`
+   tall, whether or not the tabs fill it. It shares the tabs' fill so the
+   selected tab, which erases the rail above it, reads as one surface with it. */
+.vgui-tabs__box {
+  height: var(--vgui-tabs-box, 6px);
+  background-color: var(--vgui-surface);
+}
+
 .vgui-tabs__tab {
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  /* Required, not cosmetic. A tab is a `<button>` when it is plain and a `<div>`
+     when it is closable, and the UA sheet only gives the button `border-box`.
+     Without this the two forms lay out their padding differently and a closable
+     tab is 4px taller than its siblings. It also makes the selected tab's
+     content box (`27 - 7`) match an unselected tab's (`24 - 4`), which is what
+     keeps the label on the same pixel when selection moves. */
+  box-sizing: border-box;
   min-height: var(--vgui-min-target-size);
   margin: 0;
-  padding: 2px 10px;
+  padding: var(--vgui-tabs-padding-y, 2px) 10px;
   border: 0;
   border-radius: 0;
   background-color: var(--vgui-surface);
@@ -57,10 +74,21 @@
   /* `--vgui-heading` maize is 3.62:1 on this fill; `--vgui-text-hover` is
      5.52:1 — Tabs.md, Accessibility, fix 1. */
   color: var(--vgui-text-hover);
-  /* The seam erasure. Never `border-bottom: 0`: that would shorten the layout
-     box and make the strip jitter. */
+  /* The selected tab grows upward out of the strip. `align-items: flex-end`
+     pins the bottom edge, so height added above the content raises the top
+     instead of the text; the overlap is then taken back out of the bottom
+     padding and re-added as a negative margin, which is what erases the rail.
+     Both are folded into min-height so the content box — and with it the
+     label's baseline — stays exactly where an unselected tab's is.
+     Never `border-bottom: 0`: that would shorten the layout box and make the
+     strip jitter. */
+  min-height: calc(
+    var(--vgui-min-target-size) + var(--vgui-tabs-grow, 2px) + var(--vgui-tabs-overlap, 1px)
+  );
+  padding-top: calc(var(--vgui-tabs-padding-y, 2px) + var(--vgui-tabs-grow, 2px));
+  padding-bottom: calc(var(--vgui-tabs-padding-y, 2px) + var(--vgui-tabs-overlap, 1px));
+  /* The seam erasure, so the tab ends flush on `vgui-tabs__box`. */
   margin-bottom: calc(-1 * var(--vgui-tabs-overlap, 1px));
-  padding-bottom: 3px;
 }
 
 .vgui-tabs__tab:disabled,

@@ -206,6 +206,10 @@ export const Tabs = forwardRef<HTMLDivElement, TabsProps>(function Tabs(
         })}
       </div>
 
+      {/* The shelf under the strip. Decorative paint only: it carries no
+          content and no role, so it stays out of the accessibility tree. */}
+      <div className="vgui-tabs__box" />
+
       {tabs.map((tab) => {
         const isSelected = tab.id === selectedId
         const rendered = !tab.lazy || isSelected || visited.includes(tab.id)
