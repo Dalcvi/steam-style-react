@@ -1,0 +1,218 @@
+/*
+ * Green Steam window (VGUI `Frame`).
+ *
+ * A beveled surface with a draggable caption strip, a control cluster and a
+ * resize grip. Positioning is deliberately left to the consumer: the component
+ * renders an unstyled-by-default box, it never bakes in `position: fixed`.
+ *
+ * Two values from `docs/components/Window.md` have no token — the `220x120`
+ * minimum box and the `16px` icon box — so they are routed through local
+ * properties an application shell can override, the same pattern `Panel` uses
+ * for its `max-width`.
+ */
+
+.vgui-window {
+  --vgui-window-min-width: 220px;
+  --vgui-window-min-height: 120px;
+  --vgui-window-icon-size: 16px;
+  --vgui-window-padding: 10px;
+  --vgui-window-titlebar-gap: 8px;
+  --vgui-window-control-gap: 2px;
+  --vgui-window-grip-offset: 2px;
+
+  box-sizing: border-box;
+  position: relative;
+  background-color: var(--vgui-surface);
+  border-top: var(--vgui-bevel-width) solid var(--vgui-bevel-light);
+  border-left: var(--vgui-bevel-width) solid var(--vgui-bevel-light);
+  border-bottom: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
+  border-right: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
+  padding: var(--vgui-window-padding);
+  min-width: var(--vgui-window-min-width);
+  min-height: var(--vgui-window-min-height);
+}
+
+/* `Frame:FrameFocus` — Valve lights the frame border while the window has focus. */
+.vgui-window--focused {
+  border-top-color: var(--vgui-bevel-light-strong);
+  border-left-color: var(--vgui-bevel-light-strong);
+}
+
+.vgui-window--maximized {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 0;
+}
+
+/* The caption strip: uppercase + 2px tracking is the theme's signature. */
+.vgui-window__titlebar {
+  display: flex;
+  align-items: center;
+  gap: var(--vgui-window-titlebar-gap);
+  height: var(--vgui-titlebar-height);
+  line-height: var(--vgui-titlebar-height);
+  margin-bottom: 1em;
+  cursor: move;
+  user-select: none;
+  touch-action: none;
+}
+
+/* The ring is the accessible default; `.vgui-crisp` opts into Valve's own. */
+.vgui-window__titlebar:focus-visible,
+.vgui-window__grip:focus-visible {
+  outline: var(--vgui-focus-ring);
+  outline-offset: var(--vgui-focus-ring-offset);
+}
+
+.vgui-crisp .vgui-window__titlebar:focus-visible,
+.vgui-crisp .vgui-window__grip:focus-visible {
+  outline: var(--vgui-focus-ring-valve);
+  outline-offset: var(--vgui-focus-ring-valve-offset);
+}
+
+.vgui-window__icon {
+  flex: 0 0 auto;
+  width: var(--vgui-window-icon-size);
+  height: var(--vgui-window-icon-size);
+}
+
+/*
+ * The caption stays at `--vgui-text-strong` in both states on purpose. The
+ * states table dims it to `--vgui-text-muted`, but the accessibility section
+ * measures that at 3.0:1 over `--vgui-surface` — below AA for 12px text — and
+ * resolves the conflict: dim the glyphs, never the caption.
+ */
+.vgui-window__title {
+  flex: 1 1 auto;
+  text-transform: uppercase;
+  letter-spacing: var(--vgui-chrome-tracking);
+  font-size: var(--vgui-font-size-small);
+  font-weight: bold;
+  color: var(--vgui-text-strong);
+}
+
+.vgui-window__controls {
+  display: flex;
+  gap: var(--vgui-window-control-gap);
+}
+
+.vgui-window__control {
+  position: relative;
+  width: var(--vgui-frame-control-size);
+  height: var(--vgui-frame-control-size);
+  padding: 0;
+  /* Transparent rather than none — the box has to survive the hover bevel. */
+  border: var(--vgui-bevel-width) solid transparent;
+  background-color: transparent;
+  cursor: pointer;
+}
+
+/*
+ * 20x20 is under the 24x24 minimum target size, so an invisible overlay grows
+ * the hit area without moving the glyph.
+ */
+.vgui-window__control::before {
+  content: '';
+  position: absolute;
+  inset: calc((var(--vgui-frame-control-size) - var(--vgui-min-target-size)) / 2);
+}
+
+.vgui-window__control:hover {
+  border-color: var(--vgui-bevel-light);
+}
+
+.vgui-window__control:active {
+  border-color: var(--vgui-bevel-dark);
+  background-color: var(--vgui-surface-light);
+}
+
+.vgui-window__control:focus-visible {
+  outline: var(--vgui-focus-ring);
+  outline-offset: var(--vgui-focus-ring-offset);
+}
+
+.vgui-crisp .vgui-window__control:focus-visible {
+  outline: var(--vgui-focus-ring-valve);
+  outline-offset: var(--vgui-focus-ring-valve-offset);
+}
+
+/*
+ * Glyphs are painted as a mask over `background-color`, so they follow the
+ * clay tokens under every theme variant instead of being baked into the data
+ * URI — a `data:` URI cannot read a CSS variable.
+ */
+.vgui-window__glyph {
+  display: block;
+  width: 7px;
+  height: 7px;
+  margin: 0 auto;
+  background-color: var(--vgui-clay-glyph-dim);
+  mask-image: none;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: contain;
+}
+
+.vgui-window--focused .vgui-window__glyph,
+.vgui-window__control:hover .vgui-window__glyph,
+.vgui-window__control:active .vgui-window__glyph {
+  background-color: var(--vgui-clay-glyph);
+}
+
+.vgui-window__glyph[data-glyph='minimize'] {
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 7 7'%3E%3Crect x='0.5' y='3' width='6' height='1.5' fill='white'/%3E%3C/svg%3E");
+}
+
+.vgui-window__glyph[data-glyph='maximize'] {
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 7 7'%3E%3Crect x='0.5' y='0.5' width='6' height='6' fill='none' stroke='white' stroke-width='1.5'/%3E%3C/svg%3E");
+}
+
+.vgui-window__glyph[data-glyph='restore'] {
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 7 7'%3E%3Cpath d='M1.5 2.5 h4 v4 h-4 z' fill='none' stroke='white'/%3E%3Cpath d='M2.5 2.5 v-2 h3 v3' fill='none' stroke='white'/%3E%3C/svg%3E");
+}
+
+.vgui-window__glyph[data-glyph='close'] {
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 7 7'%3E%3Cpath d='M0.5 0.5 L6.5 6.5 M6.5 0.5 L0.5 6.5' fill='none' stroke='white' stroke-width='1.5'/%3E%3C/svg%3E");
+}
+
+.vgui-window__body {
+  min-width: 0;
+}
+
+/* `resizer` — three diagonal rules of the VGUI grip sprite. */
+.vgui-window__grip {
+  position: absolute;
+  right: var(--vgui-window-grip-offset);
+  bottom: var(--vgui-window-grip-offset);
+  width: var(--vgui-resize-grip);
+  height: var(--vgui-resize-grip);
+  cursor: nwse-resize;
+  background-color: var(--vgui-clay-glyph-dim);
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M11 1 L1 11 M11 5 L5 11 M11 9 L9 11' fill='none' stroke='white'/%3E%3C/svg%3E");
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: contain;
+}
+
+.vgui-window__grip:hover,
+.vgui-window--focused .vgui-window__grip {
+  background-color: var(--vgui-clay-glyph);
+}
+
+/*
+ * Component-scoped copy of the house screen-reader-only helper, so the control
+ * names travel with the component rather than depending on a global stylesheet.
+ */
+.vgui-window .vgui-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}

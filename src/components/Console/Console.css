@@ -1,0 +1,96 @@
+/*
+ * Green Steam console.
+ *
+ * There is no `Console` block in `steam.styles`: the console *is* a RichText
+ * (docs/components/Console.md), so it takes the recessed frame and the
+ * `DarkGreenBG` interior from RichText and adds exactly two things — a 12px
+ * monospace family (the theme's only non-`basefont` text) and a per-line colour.
+ *
+ * Live output is `Text` (#A0AA95), scrollback is `White`, and errors are
+ * `Highlight3`, which is `--vgui-console-error` in `src/styles/tokens.css`.
+ *
+ * Component-local metrics are declared here per foundations.md §4; shared
+ * palette tokens are referenced bare.
+ */
+
+.vgui-console {
+  --vgui-console-font: var(--vgui-font-mono);
+  --vgui-console-font-size: var(--vgui-font-size-small);
+  --vgui-console-line-height: 1.35;
+  --vgui-console-bg: var(--vgui-surface-dark); /* DarkGreenBG */
+  --vgui-console-text: var(--vgui-text-muted); /* Text, steam.styles:57 */
+  --vgui-console-history-text: var(--vgui-text-strong); /* White */
+  --vgui-console-selection-bg: var(--vgui-accent-dark); /* MaizeBG */
+  --vgui-console-inset: var(--vgui-richtext-inset, 6px);
+  --vgui-console-error-prefix: 'ERR: ';
+
+  box-sizing: border-box;
+  /* Inverted bevel: top/left dark, bottom/right lit — the recessed orientation
+     RichText shares with ListPanel. */
+  border-block-start: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
+  border-inline-start: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
+  border-inline-end: var(--vgui-bevel-width) solid var(--vgui-bevel-light);
+  border-block-end: var(--vgui-bevel-width) solid var(--vgui-bevel-light);
+  padding: var(--vgui-console-inset);
+  overflow-y: auto;
+  background-color: var(--vgui-console-bg);
+  color: var(--vgui-console-text);
+  font-family: var(--vgui-console-font);
+  font-size: var(--vgui-console-font-size);
+  line-height: var(--vgui-console-line-height);
+}
+
+/*
+ * The container is `tabindex="0"` so the log can be scrolled with the keyboard,
+ * which makes it focusable and therefore in need of a ring. Nothing here traps
+ * the keyboard: `Ctrl+C` on selected text must keep working.
+ */
+.vgui-console:focus-visible {
+  outline: var(--vgui-focus-ring);
+  outline-offset: var(--vgui-focus-ring-offset);
+}
+
+.vgui-console__history {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.vgui-console__line {
+  color: var(--vgui-console-text);
+  /* Console output is column-aligned by the engine, so whitespace is meaningful
+     — but a 4000-character server-supplied token must still not overflow. */
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* CConsoleHistory is White; console_text is Text. Two colours, one console. */
+.vgui-console__line--history {
+  color: var(--vgui-console-history-text);
+}
+
+/* Highlight3 fails contrast on this fill (1.74:1), so the colour is never the
+   only signal: an error line also carries a glyph. Non-colour cue, WCAG 1.4.1.
+   The prefix is CSS so that `lines` stays a plain data array. */
+.vgui-console__line--error {
+  color: var(--vgui-console-error);
+}
+
+.vgui-console__line--error::before {
+  content: var(--vgui-console-error-prefix);
+}
+
+/* Opt-out for a consumer that supplies its own prefix or localises it. */
+.vgui-console--no-error-prefix .vgui-console__line--error::before {
+  content: none;
+}
+
+/*
+ * `CConsoleHistory` declares no `selectedbgcolor`, so scrollback selection keeps
+ * the platform highlight — reproduced by simply not styling it. The live styles
+ * do set MaizeBG, and maize takes dark text (foundations.md §10, baseline 1).
+ */
+.vgui-console__line:not(.vgui-console__line--history)::selection {
+  background-color: var(--vgui-console-selection-bg);
+  color: var(--vgui-selection-text);
+}

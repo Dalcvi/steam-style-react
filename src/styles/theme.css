@@ -1,25 +1,34 @@
 /*
- * Global Green Steam (VGUI) theme.
+ * Green Steam (VGUI) global theme.
  *
- * Only document-level rules live here — the element defaults and shared layout
- * helpers that every component inherits. Anything that belongs to a specific
+ * Opt-in, and only ever document-level: tokens plus the element defaults and
+ * layout helpers that every component inherits. Anything belonging to a single
  * component is colocated with that component instead (see
- * `components/GreenButton/GreenButton.css`).
+ * `components/Button/Button.css`).
  *
- * Derived from VGUI.css <https://github.com/AlpyneDreams/vgui.css> (MIT).
+ * Components never depend on this file — each one imports its own stylesheet
+ * and reads `var(--vgui-*)` tokens, so a component dropped into an unthemed
+ * page still renders. Import this once (or `./tokens.css` alone for just the
+ * tokens) to theme the page around it.
+ *
+ * Derived from VGUI.css <https://github.com/AlpyneDreams/vgui.css> (MIT) and
+ * Valve's `steamscheme.res`. See `docs/foundations.md`.
  */
 
+@import './tokens.css';
+
 body {
-  background-color: #3e4637;
-  font-family: "Trebuchet MS", "Verdana", sans-serif;
-  color: #d8ded3;
-  font-size: 14px;
-  image-rendering: pixelated;
-  margin: 20px 20px;
+  background-color: var(--vgui-surface-dark);
+  font-family: var(--vgui-font);
+  color: var(--vgui-text);
+  font-size: var(--vgui-font-size);
+  line-height: var(--vgui-line-height);
+  margin: 20px;
 }
 
 ::selection {
-  background-color: #96892d;
+  background-color: var(--vgui-selection-bg);
+  color: var(--vgui-selection-text);
 }
 
 h1,
@@ -29,11 +38,13 @@ h4,
 h5,
 h6 {
   margin: 3px 12px 12px;
+  font-weight: bold;
+  line-height: var(--vgui-line-height);
 }
 
 h1,
 h2 {
-  color: #c4b550;
+  color: var(--vgui-heading);
 }
 
 h1 {
@@ -41,82 +52,116 @@ h1 {
 }
 
 h2 {
-  font-size: 16px;
+  font-size: var(--vgui-font-size-large);
+}
+
+h3,
+h4,
+h5,
+h6 {
+  font-size: var(--vgui-font-size);
 }
 
 p {
   text-align: left;
-  margin: 12px 12px 12px;
-  color: #d8ded3;
+  margin: 12px;
+  color: var(--vgui-text);
 }
 
 a {
   text-decoration: none;
-  color: #aaaaaa;
+  color: var(--vgui-link);
 }
 
 a:hover {
+  color: var(--vgui-text-hover);
   text-decoration: underline;
 }
 
+code,
+kbd,
+samp,
+pre {
+  font-family: var(--vgui-font-mono);
+  font-size: var(--vgui-font-size-small);
+}
+
 code {
-  background: #3e4637;
+  background: var(--vgui-surface-dark);
   padding: 0 3px;
-  font-family: monospace;
 }
 
 hr {
   margin: 20px 0;
   border: none;
   height: 1px;
-  background-color: #3e4637;
+  background-color: var(--vgui-bevel-dark);
 }
 
 img {
   object-fit: contain;
   margin: 2px;
-  border: solid 2px #7b8484;
+  border: solid 2px var(--vgui-bevel-light);
 }
 
 fieldset {
-  border-top: solid 1px #292d23;
-  border-bottom: solid 1px #899281;
-  border-left: solid 1px #292d23;
-  border-right: solid 1px #899281;
+  border-top: solid var(--vgui-bevel-width) var(--vgui-bevel-dark);
+  border-bottom: solid var(--vgui-bevel-width) var(--vgui-bevel-light);
+  border-left: solid var(--vgui-bevel-width) var(--vgui-bevel-dark);
+  border-right: solid var(--vgui-bevel-width) var(--vgui-bevel-light);
 }
 
 legend {
   text-transform: uppercase;
-  letter-spacing: 2px;
-  font-size: 12px;
-  color: white;
+  letter-spacing: var(--vgui-chrome-tracking);
+  font-size: var(--vgui-font-size-small);
+  color: var(--vgui-text-strong);
   font-weight: bold;
+}
+
+/*
+ * `.vgui-crisp` — opt-in pixel-perfect rendering.
+ *
+ * Deliberately a class and never a global rule: disabling font smoothing and
+ * enabling `image-rendering: pixelated` overrides the user's own rendering
+ * preferences and hurts legibility at small sizes. Apply it to a subtree only
+ * when chasing literal 2003 fidelity. Components that ship a `.vgui-crisp`
+ * rule use it to swap the accessible focus ring for Valve's own.
+ */
+.vgui-crisp {
+  -webkit-font-smoothing: none;
+  -moz-osx-font-smoothing: grayscale;
+  image-rendering: pixelated;
 }
 
 /* Shared layout helpers */
 
-.flex-row {
+.vgui-flex-row {
   display: flex;
   flex-direction: row;
   align-items: flex-start;
 }
 
-.flex-column {
+.vgui-flex-column {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
 }
 
-.border {
-  border-top: solid 1px #899281;
-  border-bottom: solid 1px #292d23;
-  border-left: solid 1px #899281;
-  border-right: solid 1px #292d23;
+/*
+ * Raised and inset bevels. Light from the top-left, as VGUI draws it: a raised
+ * box is light on top/left and dark on bottom/right, and an inset box is the
+ * exact inverse. Widths come from `--vgui-bevel-width` so a border that must
+ * stay 1px under zoom can be pinned instead.
+ */
+.vgui-bevel {
+  border-style: solid;
+  border-width: var(--vgui-bevel-width);
+  border-color: var(--vgui-bevel-light) var(--vgui-bevel-dark)
+    var(--vgui-bevel-dark) var(--vgui-bevel-light);
 }
 
-.border-inverted {
-  border-top: solid 1px #292d23;
-  border-bottom: solid 1px #899281;
-  border-left: solid 1px #292d23;
-  border-right: solid 1px #899281;
+.vgui-bevel--inset {
+  border-color: var(--vgui-bevel-dark) var(--vgui-bevel-light)
+    var(--vgui-bevel-light) var(--vgui-bevel-dark);
 }

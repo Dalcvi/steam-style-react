@@ -1,0 +1,122 @@
+/*
+ * Menu — the dropdown panel and its rows.
+ * Spec: docs/components/Menu.md. Metrics, bevels and the a11y baseline come
+ * from docs/foundations.md.
+ *
+ * The border is a flat 1px `LightGreenBG` outline on all four sides, not a
+ * bevel, and there is deliberately no box-shadow: nothing in steam.styles
+ * draws one, and a modern elevation shadow breaks the period look.
+ * `inset = "1 0 1 1"` becomes `padding: 0 1px 1px` so the hover fill never
+ * paints over the outline.
+ */
+
+.vgui-menu {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  min-width: var(--vgui-menu-min-width, 150px);
+  margin: 0;
+  padding: 0 1px 1px;
+  background-color: var(--vgui-menu-bg, var(--vgui-surface-dark));
+  border: 1px solid var(--vgui-menu-border, var(--vgui-surface-light));
+  color: var(--vgui-text-strong);
+  font-family: var(--vgui-font);
+  font-size: var(--vgui-font-size);
+  line-height: var(--vgui-line-height);
+  /* No box-shadow. See docs/components/Menu.md, "Four things to extract". */
+  box-shadow: none;
+}
+
+/* Submenu levels are painted adjacent to their parent row and overlap its
+   outline by a pixel rather than having the seam removed with `border-*: 0`,
+   which would shorten the box. See docs/components/Tabs.md. */
+.vgui-menu--submenu {
+  position: absolute;
+  top: -1px;
+  left: calc(100% - 1px);
+  z-index: 1;
+}
+
+.vgui-menu__row {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.vgui-menu__item {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+  min-height: var(--vgui-menu-item-height, 24px);
+  padding: 2px 8px 2px 4px;
+  border: 0;
+  background: transparent;
+  color: var(--vgui-text-strong);
+  font-family: inherit;
+  font-size: var(--vgui-font-size);
+  text-align: left;
+  /* VGUI menus are not link cursors. */
+  cursor: default;
+}
+
+/* Hover and focus-visible are the same state for a mouse and a keyboard user. */
+.vgui-menu__item:hover,
+.vgui-menu__item:focus-visible {
+  background-color: var(--vgui-accent-dark);
+  /* 4.22:1. White on MaizeBG is 3.70:1 and fails; see foundations.md §10. */
+  color: var(--vgui-selection-text);
+}
+
+.vgui-menu__item:focus-visible {
+  outline: var(--vgui-focus-ring);
+  outline-offset: var(--vgui-focus-ring-offset);
+}
+
+.vgui-menu__item:disabled {
+  color: var(--vgui-text-disabled);
+  text-shadow: 1px 1px 0 var(--vgui-text-disabled-shadow);
+}
+
+/* The gutter keeps checked and unchecked rows' text aligned. */
+.vgui-menu__gutter {
+  flex: 0 0 16px;
+  text-align: center;
+}
+
+.vgui-menu__text {
+  flex: 1 1 auto;
+}
+
+.vgui-menu__arrow {
+  flex: 0 0 auto;
+  width: 0;
+  height: 0;
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  border-left: 5px solid currentColor;
+}
+
+.vgui-menu__separator {
+  height: 1px;
+  /* `padding-right = 3`: the rule stops short of the right edge. */
+  margin: 1px 3px 1px 0;
+  /* `MenuDivider` `#4C4E4B` — a documented token this library does not define
+     yet, so it falls back to the nearest existing surface tone. It is
+     decorative either way: around 1.03:1 against the panel. */
+  background-color: var(--vgui-menu-divider, var(--vgui-surface));
+}
+
+.vgui-menu__label {
+  padding: 4px 8px 2px 4px;
+  color: var(--vgui-text-muted);
+  font-size: var(--vgui-font-size-small);
+  letter-spacing: var(--vgui-chrome-tracking);
+  text-transform: uppercase;
+}
+
+.vgui-crisp .vgui-menu__item:focus-visible {
+  outline: var(--vgui-focus-ring-valve);
+  outline-offset: var(--vgui-focus-ring-valve-offset);
+}

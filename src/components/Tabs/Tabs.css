@@ -1,0 +1,138 @@
+/*
+ * Green Steam property sheet — `PropertySheet` / `PageTab` (steam.styles:1793).
+ *
+ * Both tab states paint `--vgui-surface`; nothing about the selected tab is
+ * brighter. Selection is carried by the label colour plus the seam erasure —
+ * the selected tab paints 1px *past* its own bottom edge, over the strip's
+ * rail, exactly as `fill( x0 + 1, y1 - 1, x1 - 1, y1 + 2, GreenBG )` does.
+ */
+
+.vgui-tabs {
+  display: flex;
+  flex-direction: column;
+  color: var(--vgui-text-strong);
+  font-family: var(--vgui-font);
+  font-size: var(--vgui-font-size);
+  line-height: var(--vgui-line-height);
+}
+
+.vgui-tabs__strip {
+  display: flex;
+  align-items: flex-end;
+  /* PropertySheet.TabGap = 3 (steam.styles:337) */
+  gap: var(--vgui-tabs-gap, 3px);
+  margin: 0;
+  padding: 0;
+  /* The rail the selected tab has to erase. */
+  border-bottom: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
+}
+
+.vgui-tabs__tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: var(--vgui-min-target-size);
+  margin: 0;
+  padding: 2px 10px;
+  border: 0;
+  border-radius: 0;
+  background-color: var(--vgui-surface);
+  color: var(--vgui-text-strong);
+  font: inherit;
+  text-align: left;
+  cursor: default;
+  /* Raised bevel: bright top/left, dark right, no bottom — the tab's own fill
+     runs to its lower edge so it appears to merge downward. */
+  box-shadow:
+    inset var(--vgui-bevel-width) var(--vgui-bevel-width) 0 var(--vgui-bevel-light),
+    inset calc(-1 * var(--vgui-bevel-width)) 0 0 var(--vgui-bevel-dark);
+}
+
+/* Invented: `PageTab` declares no hover block (Tabs.md, Open questions). */
+.vgui-tabs__tab:not(.vgui-tabs__tab--selected):hover {
+  background-color: var(--vgui-surface-light);
+}
+
+.vgui-tabs__tab--selected {
+  /* `--vgui-heading` maize is 3.62:1 on this fill; `--vgui-text-hover` is
+     5.52:1 — Tabs.md, Accessibility, fix 1. */
+  color: var(--vgui-text-hover);
+  /* The seam erasure. Never `border-bottom: 0`: that would shorten the layout
+     box and make the strip jitter. */
+  margin-bottom: calc(-1 * var(--vgui-tabs-overlap, 1px));
+  padding-bottom: 3px;
+}
+
+.vgui-tabs__tab:disabled,
+.vgui-tabs__tab--disabled {
+  color: var(--vgui-text-disabled);
+  text-shadow: var(--vgui-bevel-width) var(--vgui-bevel-width) 0 var(--vgui-text-disabled-shadow);
+  cursor: not-allowed;
+}
+
+.vgui-tabs__tab:disabled:hover,
+.vgui-tabs__tab--disabled:hover {
+  background-color: var(--vgui-surface);
+}
+
+.vgui-tabs__tab:focus-visible {
+  outline: var(--vgui-focus-ring);
+  outline-offset: var(--vgui-focus-ring-offset);
+}
+
+.vgui-crisp .vgui-tabs__tab:focus-visible {
+  outline: var(--vgui-focus-ring-valve);
+  outline-offset: var(--vgui-focus-ring-valve-offset);
+}
+
+.vgui-tabs__label {
+  white-space: nowrap;
+}
+
+/* TabCloseButton { padding-right = 16 } (steam.styles:3130). Not focusable —
+   see the note in Tabs.tsx; the keyboard path is Delete on the tab. */
+.vgui-tabs__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--vgui-tabs-close-slot, 16px);
+  height: var(--vgui-tabs-close-slot, 16px);
+  margin-left: auto;
+  padding: 0;
+  color: inherit;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.vgui-tabs__close:hover {
+  color: var(--vgui-text-strong);
+}
+
+.vgui-tabs__panel {
+  padding: 8px;
+}
+
+.vgui-tabs--clay .vgui-tabs__panel {
+  /* LightClayBG — "property sheet interior, active tab" (steamscheme.res:38).
+     The page border is PropertySheetBG `#4a4846`, which has no token; the
+     nearest declared clay chrome is `--vgui-clay-surface` `#464646`. */
+  background-color: var(--vgui-clay-light);
+  border: var(--vgui-bevel-width) solid var(--vgui-clay-surface);
+  color: var(--vgui-text-strong);
+}
+
+.vgui-tabs--green .vgui-tabs__panel {
+  background-color: var(--vgui-surface);
+  border: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
+  color: var(--vgui-text-strong);
+}
+
+.vgui-tabs__panel:focus-visible {
+  outline: var(--vgui-focus-ring);
+  outline-offset: var(--vgui-focus-ring-offset);
+}
+
+.vgui-crisp .vgui-tabs__panel:focus-visible {
+  outline: var(--vgui-focus-ring-valve);
+  outline-offset: var(--vgui-focus-ring-valve-offset);
+}

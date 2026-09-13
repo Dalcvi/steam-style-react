@@ -1,0 +1,56 @@
+/*
+ * Green Steam panel.
+ *
+ * The beveled surface everything else sits on. `--inset` overrides only the
+ * four `border-*-color` longhands rather than redeclaring the shorthand, which
+ * keeps the border widths in one place and makes the inversion auditable.
+ */
+
+.vgui-panel {
+  /* `max-width` is a layout constraint from the CSS port, not a requirement, so
+   * it is routed through a local property an application shell can override. */
+  --vgui-panel-max-width: var(--vgui-window-max-width);
+
+  box-sizing: border-box;
+  background-color: var(--vgui-surface);
+  border-top: var(--vgui-bevel-width) solid var(--vgui-bevel-light);
+  border-left: var(--vgui-bevel-width) solid var(--vgui-bevel-light);
+  border-bottom: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
+  border-right: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
+  padding: 10px;
+  max-width: var(--vgui-panel-max-width);
+  margin: 0 0 20px;
+}
+
+.vgui-panel--inset {
+  background-color: var(--vgui-surface-dark);
+  border-top-color: var(--vgui-bevel-dark);
+  border-left-color: var(--vgui-bevel-dark);
+  border-bottom-color: var(--vgui-bevel-light);
+  border-right-color: var(--vgui-bevel-light);
+}
+
+/*
+ * Dropping the border removes the only non-text boundary cue, so `--rounded`
+ * substitutes an outline to stay above WCAG 1.4.11's 3:1 for UI components.
+ */
+.vgui-panel--rounded {
+  border: none;
+  border-radius: 10px;
+  outline: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
+  outline-offset: -1px;
+}
+
+/* The caption strip. Uppercase + 2px tracking is the theme's signature. */
+.vgui-panel__titlebar {
+  display: block;
+  width: 100%;
+  height: var(--vgui-titlebar-height);
+  line-height: var(--vgui-titlebar-height);
+  margin: 0 0 1em;
+  text-transform: uppercase;
+  letter-spacing: var(--vgui-chrome-tracking);
+  font-size: var(--vgui-font-size-small);
+  font-weight: bold;
+  color: var(--vgui-text-strong);
+}

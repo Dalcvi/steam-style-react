@@ -1,0 +1,117 @@
+/*
+ * Green Steam button.
+ *
+ * A 25px rectangle with a two-tone 1px bevel that inverts when pressed. Two
+ * details do the heavy lifting and are easy to get wrong (docs/components/Button.md):
+ *
+ *   1. The label is LEFT-aligned with a 4px inset (`inset "4 0 0 0"`), never centred.
+ *   2. There is no `:hover` treatment. `steam.styles` defines no `Button:MouseOver`
+ *      border, so the only affordance is `cursor: pointer`.
+ *
+ * Two explicit deviations from the CSS port, both required by WCAG: `min-height`
+ * rather than `height` so text survives 200% zoom (1.4.4), and a real 24px hit
+ * area on `--small` (2.5.8).
+ */
+
+.vgui-button {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  min-height: var(--vgui-control-height);
+  min-width: var(--vgui-button-min-width);
+  padding: 0 8px 0 var(--vgui-field-inset);
+  font: inherit;
+  font-weight: lighter;
+  text-align: left;
+  color: var(--vgui-text-strong);
+  background-color: var(--vgui-surface);
+  border-top: var(--vgui-bevel-width) solid var(--vgui-bevel-light);
+  border-left: var(--vgui-bevel-width) solid var(--vgui-bevel-light);
+  border-bottom: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
+  border-right: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
+  cursor: pointer;
+}
+
+/* Active INVERTS the bevel. It does not translate the button. */
+.vgui-button:active {
+  border-top-color: var(--vgui-bevel-dark);
+  border-left-color: var(--vgui-bevel-dark);
+  border-bottom-color: var(--vgui-bevel-light);
+  border-right-color: var(--vgui-bevel-light);
+}
+
+/*
+ * Valve's literal ring (`1px dashed BorderDark`) measures 1.87:1 against the
+ * button face, so the visible accent ring is the default and the faithful one
+ * is reachable through the `.vgui-crisp` opt-in — the same switch that turns on
+ * bitmap text rendering (docs/foundations.md §5).
+ */
+.vgui-button:focus-visible {
+  outline: var(--vgui-focus-ring);
+  outline-offset: var(--vgui-focus-ring-offset);
+}
+
+.vgui-crisp .vgui-button:focus-visible {
+  outline: var(--vgui-focus-ring-valve);
+  outline-offset: var(--vgui-focus-ring-valve-offset);
+}
+
+/*
+ * DisabledText1 is drawn at +1px +1px underneath DisabledText2, so the label
+ * looks pressed into the surface. Reproduced with `text-shadow`, not two
+ * elements. The colour alone is 1.82:1, so the cursor carries the rest.
+ */
+.vgui-button:disabled {
+  cursor: not-allowed;
+  color: var(--vgui-text-disabled);
+  text-shadow: 1px 1px 0 var(--vgui-text-disabled-shadow);
+}
+
+.vgui-button--full-width {
+  display: flex;
+  width: 100%;
+}
+
+.vgui-button--small {
+  position: relative;
+  min-height: 18px;
+  min-width: 60px;
+  font-size: var(--vgui-font-size-small);
+}
+
+/* An 18px control is below the 24px minimum target, so --small grows its hit
+ * area without changing its painted size. */
+.vgui-button--small::after {
+  content: '';
+  position: absolute;
+  inset: 50% 0 auto;
+  height: var(--vgui-min-target-size);
+  transform: translateY(-50%);
+}
+
+.vgui-button--large {
+  min-height: 30px;
+  font-size: var(--vgui-font-size-large);
+}
+
+/* VGUI has no primary/secondary hierarchy; this is an emphasis hook only. */
+.vgui-button--primary {
+  font-weight: bold;
+}
+
+.vgui-button--danger {
+  outline: var(--vgui-bevel-width) solid var(--vgui-danger);
+  outline-offset: -2px;
+}
+
+.vgui-button--clay {
+  background-color: var(--vgui-clay-button);
+}
+
+.vgui-button__label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

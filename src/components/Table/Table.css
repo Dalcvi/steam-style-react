@@ -1,0 +1,249 @@
+/* Table — ListPanel with ListPanelColumnheader, ListPanelDragger and
+   SectionedListPanel rows. See docs/components/Table.md.
+   Every metric below that the corpus does not define is written as a
+   `var(--vgui-<token>, <doc value>)` pair so the component still renders
+   correctly before the token lands in tokens.css. */
+
+.vgui-table {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  box-sizing: border-box;
+  color: var(--vgui-text);
+  font-family: var(--vgui-font);
+  font-size: var(--vgui-font-size, 14px);
+  line-height: var(--vgui-line-height, 1.25);
+}
+
+/* ---- Header: ListPanelColumnheader ---- */
+.vgui-table__head {
+  display: flex;
+  flex: 0 0 auto;
+  position: relative;
+  z-index: 1;
+  background-color: var(--vgui-table-header-bg, #4c5844);
+  border-top: var(--vgui-bevel-width, 1px) solid var(--vgui-bevel-light);
+  border-left: var(--vgui-bevel-width, 1px) solid var(--vgui-bevel-light);
+  border-right: var(--vgui-bevel-width, 1px) solid var(--vgui-bevel-dark);
+  border-bottom: var(--vgui-bevel-width, 1px) solid var(--vgui-bevel-dark);
+  color: var(--vgui-table-header-text, #ffffff);
+  font-weight: var(--vgui-table-header-weight, 200);
+  /* No :hover rule: the corpus hover is a no-op, and a colour hover would leave
+     the vocabulary. Pressed rotates the bevel like every other VGUI control. */
+}
+
+.vgui-table--header-uppercase .vgui-table__head {
+  text-transform: uppercase;
+}
+
+.vgui-table--sticky .vgui-table__head {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+.vgui-table__th {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  box-sizing: border-box;
+  min-width: 0;
+  min-height: var(--vgui-table-row-height, 17px);
+  padding: 0 var(--vgui-table-cell-pad, 4px);
+  cursor: default;
+  overflow: hidden;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.vgui-table__th-label {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.vgui-table__th-icon {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  /* The header glyphs are 16x16 in the corpus; no assets ship with the port. */
+  width: var(--vgui-table-glyph-size, 16px);
+  height: var(--vgui-table-glyph-size, 16px);
+}
+
+.vgui-table__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--vgui-table-glyph-size, 16px);
+  height: var(--vgui-table-glyph-size, 16px);
+}
+
+/* Sortable headers are buttons, so they need to inherit the header strip's
+   typography and to keep the full cell as their target. */
+.vgui-table__sort {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  width: 100%;
+  min-width: 0;
+  min-height: var(--vgui-table-row-height, 17px);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: inherit;
+  cursor: pointer;
+}
+
+.vgui-table__sort:focus-visible,
+.vgui-table__dragger:focus-visible {
+  outline: var(--vgui-focus-ring);
+  outline-offset: var(--vgui-focus-ring-offset);
+}
+
+/* Valve's fallback ring: a 1px dashed inner outline. */
+.vgui-crisp .vgui-table__sort:focus-visible,
+.vgui-crisp .vgui-table__dragger:focus-visible {
+  outline: var(--vgui-focus-ring-valve);
+  outline-offset: var(--vgui-focus-ring-valve-offset);
+}
+
+/* There is no sorted state in the corpus — the indicator was drawn in C++ by
+   CInternetGames. A triangle is the smallest invention that is not a colour,
+   and the sorted header also carries aria-sort. */
+.vgui-table__sort-indicator {
+  flex: 0 0 auto;
+  width: 0;
+  height: 0;
+  margin-left: 2px;
+  border-left: var(--vgui-table-sort-glyph-size, 4px) solid transparent;
+  border-right: var(--vgui-table-sort-glyph-size, 4px) solid transparent;
+  border-bottom: var(--vgui-table-sort-glyph-size, 4px) solid currentColor;
+}
+
+.vgui-table__sort-indicator[data-direction='desc'] {
+  border-bottom: 0;
+  border-top: var(--vgui-table-sort-glyph-size, 4px) solid currentColor;
+}
+
+.vgui-table__sort-indicator[data-direction='none'] {
+  visibility: hidden;
+}
+
+/* ---- Dragger: ListPanelDragger ---- */
+/* The corpus draws nothing here and gives it no keyboard path; a visible 1px
+   seam plus arrow-key resizing is a deliberate departure, documented in
+   docs/components/Table.md. */
+.vgui-table__dragger {
+  position: relative;
+  flex: 0 0 var(--vgui-table-dragger-width, 1px);
+  align-self: stretch;
+  background-color: var(--vgui-bevel-dark);
+  cursor: col-resize;
+}
+
+/* A 1px target is unreachable with a pointer, so the seam carries an invisible
+   hit area. It stops at 3px per side because the neighbouring cells have 4px of
+   their own padding — a full --vgui-min-target-size would cover header text. */
+.vgui-table__dragger::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -3px;
+  right: -3px;
+}
+
+/* ---- Body: same grammar as List ---- */
+.vgui-table__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  background-color: var(--vgui-list-bg, #3e4637);
+  /* The head already painted the seam; a second BorderDark here would draw a 2px
+     double line. Paint the boundary once, from the element above. */
+  border-top: 0;
+  border-left: var(--vgui-bevel-width, 1px) solid var(--vgui-bevel-dark);
+  border-right: var(--vgui-bevel-width, 1px) solid var(--vgui-bevel-light);
+  border-bottom: var(--vgui-bevel-width, 1px) solid var(--vgui-bevel-light);
+  overflow-y: auto;
+}
+
+.vgui-table__row {
+  position: relative;
+  display: flex;
+  min-height: var(--vgui-table-row-height, 17px);
+  /* GameslistText, which Valve created for the games list: 7.06:1 on GrayBG. */
+  color: var(--vgui-text-list-strong, #e6ece0);
+  cursor: default;
+  /* No transitions: VGUI selection is instantaneous. */
+}
+
+/* Selection is "pushed in": the fill is darker than the interior at only 1.41:1,
+   which fails WCAG 1.4.11 on its own, so the state also carries a leading marker
+   and a 1px inset shadow — both non-colour cues. */
+.vgui-table__row[aria-selected='true'] {
+  background-color: var(--vgui-list-selected-bg, #282e22);
+  color: var(--vgui-text-strong);
+  box-shadow: inset 1px 1px 0 var(--vgui-bevel-dark);
+}
+
+/* Absolutely positioned so the marker costs no width: a marker in the flow would
+   shift every cell 2px sideways whenever the selection moved. */
+.vgui-table__row[aria-selected='true']::before {
+  content: '';
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  left: 0;
+  width: 2px;
+  background-color: var(--vgui-text-strong);
+}
+
+/* Roving tabindex: the arrow keys move focus, so the ring marks the *active*
+   row — a different row from the selected ones in a multi-select grid. */
+.vgui-table__row:focus-visible {
+  outline: var(--vgui-focus-ring);
+  outline-offset: var(--vgui-focus-ring-offset);
+}
+
+.vgui-crisp .vgui-table__row:focus-visible {
+  outline: var(--vgui-focus-ring-valve);
+  outline-offset: var(--vgui-focus-ring-valve-offset);
+}
+
+/* ---- Cells ---- */
+.vgui-table__cell {
+  box-sizing: border-box;
+  min-width: 0;
+  padding: 0 var(--vgui-table-cell-pad, 4px);
+  overflow: hidden;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vgui-table__th[data-align='center'],
+.vgui-table__cell[data-align='center'] {
+  justify-content: center;
+  text-align: center;
+}
+
+.vgui-table__th[data-align='end'],
+.vgui-table__cell[data-align='end'] {
+  justify-content: flex-end;
+  text-align: right;
+}
+
+/* ---- Empty state ---- */
+.vgui-table__empty {
+  flex: 1 1 auto;
+  color: var(--vgui-text-dim);
+  font-style: italic;
+}

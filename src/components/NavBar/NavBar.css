@@ -1,0 +1,179 @@
+/*
+ * NavBar — the client's application-level navigation strip and its dropdowns.
+ * Spec: docs/components/NavBar.md. Metrics, the bevel primitive and the a11y
+ * baseline come from docs/foundations.md.
+ *
+ * Every selector is written twice: the spec names the strip `.vgui-navbar*`,
+ * while the library's convention is `.vgui-<kebab-name>` → `.vgui-nav-bar*`.
+ * Both class names are applied to the elements and both selectors declared
+ * here, so either name is a supported hook.
+ *
+ * Three deliberate departures from the VGUI original, each an accessibility fix
+ * rather than a style choice:
+ *   1. the active item carries `aria-current` *and* a 1px underline, because
+ *      `White` → `Text` is invisible to anyone with a colour deficiency;
+ *   2. `SuperNavMenuItem:selected {}` is empty in the corpus, so the maize
+ *      highlight is promoted from `:hover` to selection and `:focus-visible`;
+ *   3. maize takes `Down` dark text — white is inherited in the corpus and
+ *      lands at 3.70:1, a fail (foundations.md §10).
+ */
+
+.vgui-navbar,
+.vgui-nav-bar {
+  box-sizing: border-box;
+  /* MainNav: font-size 21, font-weight 700, uppercase, bgcolor = none.
+     The strip paints nothing at all — it is not droppable on a white page. */
+  font-family: var(--vgui-font);
+  font-size: var(--vgui-nav-font-size, 21px);
+  font-weight: var(--vgui-nav-font-weight, 700);
+  line-height: var(--vgui-nav-line-height, 21px);
+  /* The original adds no tracking; 21px bold uppercase loses its shape cues
+     if letter-spacing is invented. It must stay normal. */
+  letter-spacing: normal;
+  text-transform: uppercase;
+  background: none;
+  border: 0;
+  color: var(--vgui-nav-text, var(--vgui-text-strong));
+}
+
+.vgui-navbar__list,
+.vgui-nav-bar__list {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.vgui-navbar__item,
+.vgui-nav-bar__item {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+}
+
+.vgui-navbar__button,
+.vgui-nav-bar__button {
+  display: block;
+  box-sizing: border-box;
+  padding: 0 8px;
+  border: 0;
+  background: none;
+  color: var(--vgui-nav-text, var(--vgui-text-strong));
+  font: inherit;
+  line-height: var(--vgui-nav-line-height, 21px);
+  letter-spacing: inherit;
+  text-decoration: none;
+  text-transform: inherit;
+  /* VGUI navigation is not a link cursor. */
+  cursor: default;
+  /* No transition: VGUI has none. */
+}
+
+/* The active item is DIMMER, not brighter — do not invert this to match a
+   modern nav bar. The direction of emphasis is the style, and the underline
+   is what keeps the state visible without colour. */
+.vgui-navbar__item--active > .vgui-navbar__button,
+.vgui-nav-bar__item--active > .vgui-nav-bar__button {
+  color: var(--vgui-nav-text-active, var(--vgui-text-muted));
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+
+/* MainNav has no hover state; the port's invented `nav a:hover` yellow is
+   used, and it measures 5.52:1 on GreenBG. */
+.vgui-navbar__button:hover:not(:disabled),
+.vgui-nav-bar__button:hover:not([aria-disabled='true']) {
+  color: var(--vgui-text-hover);
+}
+
+/* The strip is transparent, so the ring has to be drawn inside the label box
+   or a frame's parent can clip it — hence the negative offset token. */
+.vgui-navbar__button:focus-visible,
+.vgui-nav-bar__button:focus-visible {
+  outline: var(--vgui-focus-ring);
+  outline-offset: var(--vgui-focus-ring-offset);
+}
+
+.vgui-navbar__button:disabled,
+.vgui-navbar__button[aria-disabled='true'],
+.vgui-nav-bar__button:disabled,
+.vgui-nav-bar__button[aria-disabled='true'] {
+  color: var(--vgui-text-disabled);
+  text-shadow: 1px 1px 0 var(--vgui-text-disabled-shadow);
+  text-decoration: none;
+}
+
+/* The strip divider between items (`dividers`). Decorative: the original's
+   SuperDivider is 1.07:1 against the panel, so it is a hint, not information. */
+.vgui-navbar__divider,
+.vgui-nav-bar__divider {
+  align-self: stretch;
+  width: 1px;
+  margin: 0;
+  background-color: var(--vgui-menu-divider, var(--vgui-surface));
+}
+
+/* ---- Dropdown: SuperNavMenu, reusing Menu's geometry -------------------
+   The descendant prefix is load-bearing: the panel also carries `vgui-menu`,
+   whose container rule is the same specificity as a bare `.vgui-navbar__
+   dropdown`, so import order would otherwise decide who wins. */
+
+.vgui-navbar .vgui-navbar__dropdown,
+.vgui-nav-bar .vgui-nav-bar__dropdown {
+  position: absolute;
+  top: var(--vgui-nav-dropdown-offset, 23px);
+  left: 0;
+  z-index: 1;
+  min-width: var(--vgui-menu-min-width, 150px);
+  padding: 1px 0 1px 1px; /* inset = "1 0 1 1" */
+  background-color: var(--vgui-menu-bg, var(--vgui-surface-dark));
+  border: 1px solid var(--vgui-menu-border, var(--vgui-surface-light));
+  /* No drop shadow anywhere in the corpus: a flat outline on a barely lighter
+     panel is what makes this read 2003 rather than 2015. */
+  box-shadow: none;
+  /* Paint over the seam instead of shortening the box with `border-top: 0`,
+     which would jitter the strip by a pixel when the menu opens. */
+  margin-top: -1px;
+  /* The strip is 21px/700/uppercase; the rows are 14px body text. */
+  font-size: var(--vgui-font-size);
+  font-weight: 400;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.vgui-navbar .vgui-navbar__dropdown .vgui-menu__item,
+.vgui-nav-bar .vgui-nav-bar__dropdown .vgui-menu__item {
+  color: var(--vgui-nav-text, var(--vgui-text-strong));
+  line-height: var(--vgui-nav-line-height, 21px);
+  padding: 0 6px;
+  cursor: default;
+}
+
+/* Hover, roving focus and selection are one highlight. The corpus leaves
+   `:selected` empty, which leaves keyboard users navigating blind. */
+.vgui-navbar .vgui-navbar__dropdown .vgui-menu__item:hover,
+.vgui-navbar .vgui-navbar__dropdown .vgui-menu__item:focus-visible,
+.vgui-navbar .vgui-navbar__dropdown .vgui-menu__item[data-active='true'],
+.vgui-nav-bar .vgui-nav-bar__dropdown .vgui-menu__item:hover,
+.vgui-nav-bar .vgui-nav-bar__dropdown .vgui-menu__item:focus-visible,
+.vgui-nav-bar .vgui-nav-bar__dropdown .vgui-menu__item[data-active='true'] {
+  background-color: var(--vgui-accent-dark);
+  /* Dark on maize is 4.22:1; the corpus's inherited white is 3.70:1. */
+  color: var(--vgui-text-on-accent, var(--vgui-selection-text));
+}
+
+.vgui-navbar .vgui-navbar__dropdown .vgui-menu__separator,
+.vgui-nav-bar .vgui-nav-bar__dropdown .vgui-menu__separator {
+  height: 1px;
+  margin: 1px 0;
+  background-color: var(--vgui-menu-divider, var(--vgui-surface));
+}
+
+.vgui-crisp .vgui-navbar__button:focus-visible,
+.vgui-crisp .vgui-nav-bar__button:focus-visible {
+  outline: var(--vgui-focus-ring-valve);
+  outline-offset: var(--vgui-focus-ring-valve-offset);
+}

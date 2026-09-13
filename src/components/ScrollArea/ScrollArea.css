@@ -1,0 +1,260 @@
+.vgui-scroll-area {
+  position: relative;
+  display: grid;
+  grid-template:
+    minmax(0, 1fr)
+    / minmax(0, 1fr);
+  grid-template-areas: 'viewport';
+  min-height: 0;
+  min-width: 0;
+  /* Fills a sized flex/grid parent; falls back to auto height otherwise. */
+  height: 100%;
+}
+
+.vgui-scroll-area__viewport {
+  grid-area: viewport;
+  overflow-x: hidden;
+  overflow-y: auto;
+  max-height: 100%;
+  min-height: 0;
+  min-width: 0;
+  scrollbar-color: var(--vgui-surface) var(--vgui-surface-light); /* Firefox */
+  scrollbar-width: auto;
+}
+
+.vgui-scroll-area__viewport:focus-visible {
+  outline: var(--vgui-focus-ring);
+  outline-offset: var(--vgui-focus-ring-offset);
+}
+
+.vgui-scroll-area--horizontal .vgui-scroll-area__viewport {
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.vgui-scroll-area--both .vgui-scroll-area__viewport {
+  overflow-x: auto;
+  overflow-y: auto;
+}
+
+.vgui-scroll-area--inset .vgui-scroll-area__viewport {
+  background-color: var(--vgui-surface-dark);
+  border-top: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
+  border-left: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
+  border-bottom: var(--vgui-bevel-width) solid var(--vgui-bevel-light);
+  border-right: var(--vgui-bevel-width) solid var(--vgui-bevel-light);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .vgui-scroll-area__viewport {
+    scroll-behavior: smooth;
+  }
+}
+
+/* WebKit/Blink: the full 18px scrollbar with arrow buttons. */
+.vgui-scroll-area__viewport::-webkit-scrollbar,
+.vgui-scroll-area__viewport::-webkit-scrollbar-corner {
+  width: var(--vgui-scrollbar-size);
+  height: var(--vgui-scrollbar-size);
+  background-color: var(--vgui-surface-light);
+}
+
+.vgui-scroll-area__viewport::-webkit-scrollbar-thumb {
+  background-color: var(--vgui-surface);
+  border-top: var(--vgui-bevel-width) solid var(--vgui-bevel-light);
+  border-left: var(--vgui-bevel-width) solid var(--vgui-bevel-light);
+  border-bottom: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
+  border-right: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
+}
+
+.vgui-scroll-area__viewport::-webkit-scrollbar-button {
+  width: var(--vgui-scrollbar-size);
+  height: var(--vgui-scrollbar-size);
+  background-color: var(--vgui-surface);
+  border-top: var(--vgui-bevel-width) solid var(--vgui-bevel-light);
+  border-left: var(--vgui-bevel-width) solid var(--vgui-bevel-light);
+  border-bottom: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
+  border-right: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
+}
+
+/* The native scrollbar buttons keep the bevel plate; the chevron glyph itself is
+   only painted on the custom path, because a scrollbar pseudo-element cannot
+   host a `::before`. */
+.vgui-scroll-area__viewport::-webkit-scrollbar-button:active {
+  border-top-color: var(--vgui-bevel-dark);
+  border-left-color: var(--vgui-bevel-dark);
+  border-bottom-color: var(--vgui-bevel-light);
+  border-right-color: var(--vgui-bevel-light);
+}
+
+/* Shadows sit on the leading and trailing edge of the scrollable axis. A
+   vertical area is the default, so its placement lives in the base rule. */
+.vgui-scroll-area__shadow {
+  position: absolute;
+  left: 0;
+  right: var(--vgui-scrollbar-size);
+  height: var(--vgui-bevel-width);
+  background-color: var(--vgui-bevel-dark);
+  pointer-events: none;
+  opacity: 0;
+}
+
+.vgui-scroll-area__shadow--top {
+  top: 0;
+  bottom: auto;
+}
+
+.vgui-scroll-area__shadow--bottom {
+  bottom: 0;
+  top: auto;
+}
+
+.vgui-scroll-area__shadow[data-visible='true'] {
+  opacity: 1;
+}
+
+/* The scroll affordances are decorative, so they never announce themselves. */
+.vgui-scroll-area--no-shadows .vgui-scroll-area__shadow {
+  display: none;
+}
+
+/* Leading and trailing edge of the scrollable axis. */
+.vgui-scroll-area--both .vgui-scroll-area__shadow {
+  right: var(--vgui-scrollbar-size);
+  bottom: var(--vgui-scrollbar-size);
+}
+
+.vgui-scroll-area--both .vgui-scroll-area__shadow--top {
+  bottom: auto;
+}
+
+.vgui-scroll-area--horizontal .vgui-scroll-area__shadow {
+  left: auto;
+  right: auto;
+  bottom: var(--vgui-scrollbar-size);
+  height: auto;
+  width: var(--vgui-bevel-width);
+}
+
+.vgui-scroll-area--horizontal .vgui-scroll-area__shadow--top {
+  left: 0;
+}
+
+.vgui-scroll-area--horizontal .vgui-scroll-area__shadow--bottom {
+  right: 0;
+}
+
+/* --- Custom scrollbar (the themed stand-in for the Scrollbar component) --- */
+.vgui-scroll-area--custom .vgui-scroll-area__viewport {
+  scrollbar-width: none;
+}
+
+.vgui-scroll-area--custom .vgui-scroll-area__viewport::-webkit-scrollbar {
+  display: none;
+}
+
+.vgui-scroll-area--custom {
+  grid-template:
+    minmax(0, 1fr)
+    / minmax(0, 1fr) auto;
+  grid-template-areas: 'viewport scrollbar-y';
+}
+
+.vgui-scroll-area--custom.vgui-scroll-area--horizontal {
+  grid-template:
+    minmax(0, 1fr) auto
+    / minmax(0, 1fr);
+  grid-template-areas:
+    'viewport'
+    'scrollbar-x';
+}
+
+.vgui-scroll-area--custom.vgui-scroll-area--both {
+  grid-template:
+    minmax(0, 1fr) auto
+    / minmax(0, 1fr) auto;
+  grid-template-areas:
+    'viewport scrollbar-y'
+    'scrollbar-x corner';
+}
+
+.vgui-scroll-area--custom.vgui-scroll-area--both::after {
+  content: '';
+  grid-area: corner;
+  background-color: var(--vgui-surface-light);
+}
+
+.vgui-scroll-area__scrollbar {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--vgui-surface-light);
+}
+
+.vgui-scroll-area__scrollbar--vertical {
+  grid-area: scrollbar-y;
+  width: var(--vgui-scrollbar-size);
+}
+
+.vgui-scroll-area__scrollbar--horizontal {
+  grid-area: scrollbar-x;
+  flex-direction: row;
+  height: var(--vgui-scrollbar-size);
+}
+
+.vgui-scroll-area__button {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: var(--vgui-scrollbar-size);
+  height: var(--vgui-scrollbar-size);
+  background-color: var(--vgui-surface);
+  border-top: var(--vgui-bevel-width) solid var(--vgui-bevel-light);
+  border-left: var(--vgui-bevel-width) solid var(--vgui-bevel-light);
+  border-bottom: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
+  border-right: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
+}
+
+.vgui-scroll-area__button::before {
+  content: '';
+  width: 7px;
+  height: 4px;
+  background-color: var(--vgui-clay-glyph);
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+}
+
+.vgui-scroll-area__button--increment::before {
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+}
+
+.vgui-scroll-area__scrollbar--horizontal .vgui-scroll-area__button::before {
+  width: 4px;
+  height: 7px;
+  clip-path: polygon(100% 0, 0 50%, 100% 100%);
+}
+
+.vgui-scroll-area__scrollbar--horizontal .vgui-scroll-area__button--increment::before {
+  clip-path: polygon(0 0, 100% 50%, 0 100%);
+}
+
+.vgui-scroll-area__track {
+  position: relative;
+  flex: 1 1 auto;
+  background-color: var(--vgui-surface-light);
+}
+
+.vgui-scroll-area__thumb {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  background-color: var(--vgui-surface);
+  border-top: var(--vgui-bevel-width) solid var(--vgui-bevel-light);
+  border-left: var(--vgui-bevel-width) solid var(--vgui-bevel-light);
+  border-bottom: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
+  border-right: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
+}
+
+.vgui-scroll-area__scrollbar--horizontal .vgui-scroll-area__thumb {
+  bottom: 0;
+  right: auto;
+}

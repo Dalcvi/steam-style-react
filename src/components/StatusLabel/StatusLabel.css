@@ -1,0 +1,93 @@
+/*
+ * Green Steam status label.
+ *
+ * One element, one text node: the status string of a bottom strip
+ * (docs/components/StatusLabel.md). Uppercase and muted by default, and the
+ * hover state is a COLOUR change only — no underline, no face, no bevel.
+ *
+ * `--vgui-status-dot-size` is component-local and therefore declared here, per
+ * foundations.md §4; every shared token is referenced bare.
+ */
+
+.vgui-status-label {
+  --vgui-status-dot-size: 6px;
+
+  position: relative;
+  display: inline-block;
+  font: inherit;
+  font-size: var(--vgui-font-size);
+  font-weight: 400; /* StatusLabel is the ONLY 400 override */
+  line-height: 1.15;
+  color: var(--vgui-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* The hover state is a COLOUR change only — no underline, no face, no bevel. */
+.vgui-status-label--link {
+  color: var(--vgui-text-muted);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.vgui-status-label--link:hover,
+.vgui-status-label--link:focus-visible {
+  color: var(--vgui-text-strong);
+}
+
+.vgui-status-label--link:focus-visible {
+  outline: var(--vgui-focus-ring);
+  outline-offset: var(--vgui-focus-ring-offset);
+}
+
+.vgui-status-label--with-dot {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Deliberately square: the theme has no round mask, and a square reads as a
+ * VGUI glyph rather than a modern badge dot. */
+.vgui-status-label--with-dot::before {
+  content: '';
+  flex: none;
+  inline-size: var(--vgui-status-dot-size);
+  block-size: var(--vgui-status-dot-size);
+  background-color: currentColor;
+}
+
+.vgui-status-label--strong {
+  text-transform: none;
+  color: var(--vgui-text-strong);
+  letter-spacing: 0;
+}
+
+/*
+ * The corpus declares no disabled state. Option 2 of the component doc: an
+ * opt-in `disabled` prop maps to `aria-disabled` and dims with
+ * `--vgui-text-dim` ONLY — no shadow.
+ */
+.vgui-status-label[aria-disabled='true'] {
+  color: var(--vgui-text-dim);
+  cursor: default;
+}
+
+/*
+ * The optional screen-reader-only prefix. Standard clip idiom: absolute so it
+ * is never a wrapper (and never a flex item of `--with-dot`), 1px so it cannot
+ * affect layout.
+ */
+.vgui-status-label__prefix {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}

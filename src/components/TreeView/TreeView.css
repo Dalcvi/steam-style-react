@@ -1,0 +1,191 @@
+/* TreeView — TreeNode / TreeNodeImage / TreeViewSubPanel.
+ *
+ * `steam.styles:2653–2682` is the sparsest block in the corpus: three of its
+ * four rules are empty. Only four values are evidence —
+ * `font-size = 13` (the only 13px text in the file), `Text` `#A0AA95`,
+ * `selectedtextcolor = White` and `selectedbgcolor = BorderDark` — plus the
+ * `TreeViewSubPanel` fill (`DarkGreenBG`) and its two-sided recess. The row
+ * height, the indent step and the disclosure glyph are invention and are
+ * commented as such. The only colours allowed here are `var(--vgui-*)` (see
+ * `src/styles/tokens.css`).
+ */
+
+.vgui-tree {
+  position: relative;
+  color: var(--vgui-text-muted);
+  font-size: var(--vgui-tree-font-size, 13px);
+  /* The interior scrolls, not the frame — the recess must not scroll with the
+     rows or the top/left shading would slide away. */
+  overflow: hidden;
+}
+
+/* TreeViewSubPanel (the `TreeViewSubPanel` rule), drawn on the element that
+   carries `role="tree"` so the inset frames exactly what scrolls.
+ *
+ * The source has the bottom and right lines *commented out*, i.e. a deliberate
+ * two-sided recess that only reads correctly when the panel is docked against a
+ * parent supplying the other two sides. The default variant therefore draws all
+ * four sides — the departure the doc's open questions ask for so a standalone
+ * tree does not look broken — and `--sidebar` reproduces the source exactly. */
+.vgui-tree > .vgui-tree__subpanel {
+  background-color: var(--vgui-tree-bg, var(--vgui-surface-dark));
+  border-top: 1px solid var(--vgui-bevel-dark);
+  border-left: 1px solid var(--vgui-bevel-dark);
+  border-right: 1px solid var(--vgui-bevel-light);
+  border-bottom: 1px solid var(--vgui-bevel-light);
+  overflow: auto;
+}
+
+/* Sidebar: the faithful recess plus full height. */
+.vgui-tree--sidebar {
+  height: 100%;
+}
+
+.vgui-tree--sidebar > .vgui-tree__subpanel {
+  border-right: 0;
+  border-bottom: 0;
+  height: 100%;
+}
+
+/* Rows are a flex column so a node and its `role="group"` stack in one flow and
+   the group needs no box of its own. */
+.vgui-tree__group {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.vgui-tree__node {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  /* Unverified: `TreeNode {}` is empty, so 16px is the doc's inference. */
+  min-height: 16px;
+  padding: 0 4px;
+  color: var(--vgui-text-muted);
+  font-size: var(--vgui-tree-font-size, 13px);
+  cursor: default;
+  /* No transition and no hover rule: `TreeNodeText` has no hover state, so any
+     treatment here would be invented rather than reproduced. */
+  /* The per-level step is padding, never `&nbsp;` runs, which break at
+     wide/narrow fonts. The recipe's `--level` is namespaced here because a
+     generic custom property would be inherited from unrelated ancestors. */
+  padding-left: calc(4px + var(--vgui-tree-level, 0) * var(--vgui-tree-indent, 16px));
+}
+
+/* Selection is "pushed in": `selectedbgcolor = BorderDark` is *darker* than the
+   panel behind it, 1.41:1 against `#3E4637`. That fails WCAG 1.4.11 on its own,
+   so the state carries two non-colour cues as well — a recessed 1px inset
+   shadow and a bold label. No accent stripe: VGUI fills the whole row. */
+.vgui-tree__node[aria-selected='true'] {
+  background-color: var(--vgui-tree-selected-bg, var(--vgui-bevel-dark));
+  color: var(--vgui-text-strong);
+  box-shadow: inset 1px 1px 0 var(--vgui-bevel-dark);
+  font-weight: 700;
+}
+
+/* `selectedbgcolor = BorderDark` is a bevel colour on purpose: `ListPanel`,
+   `"Page ListPanel"` and `CGamesListPanel` all select the same way, so the
+   recession is house style and the maize vocabulary is deliberately not used. */
+
+.vgui-tree__node[aria-disabled='true'] {
+  color: var(--vgui-text-disabled);
+  text-shadow: 1px 1px 0 var(--vgui-text-disabled-shadow);
+}
+
+/* Roving tabindex: the ring marks the *active* node, so it must be visible on a
+   row that is not selected as well as on one that is. */
+.vgui-tree__node:focus-visible {
+  outline: var(--vgui-focus-ring);
+  outline-offset: var(--vgui-focus-ring-offset);
+  /* `focused` text is White in the states table. */
+  color: var(--vgui-text-strong);
+}
+
+/* Valve's fallback ring: a 1px dashed inner outline. */
+.vgui-crisp .vgui-tree__node:focus-visible {
+  outline: var(--vgui-focus-ring-valve);
+  outline-offset: var(--vgui-focus-ring-valve-offset);
+}
+
+/* `TreeNodeImage {}` is empty and no `tree_expand`/`tree_collapse` asset exists
+   in the port's 16-file set, so the glyph box is the doc's inferred 13px and
+   the triangle is drawn with borders in `currentColor`, which lets it follow the
+   node from idle to selected to disabled without a second palette. */
+.vgui-tree__image {
+  position: relative;
+  flex: 0 0 var(--vgui-tree-glyph-size, 13px);
+  width: var(--vgui-tree-glyph-size, 13px);
+  height: var(--vgui-tree-glyph-size, 13px);
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+/* Plain (collapsed) glyph: points right. */
+.vgui-tree__image::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  border-left: 6px solid currentColor;
+}
+
+.vgui-tree__image--expanded::before {
+  border-top: 6px solid currentColor;
+  border-bottom: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+}
+
+/* A leaf keeps the 13px slot — that is what aligns every label in a column —
+   but draws nothing, because a disclosure triangle on a childless node is a
+   lie. */
+.vgui-tree__image--leaf::before {
+  content: none;
+}
+
+/* The glyph is `aria-hidden` (the row carries `aria-expanded`), so it is not a
+   control of its own: the full-width row is the target and this box only grows
+   the *hit* area of the disclosure half of the row, which the row's own click
+   handler resolves. */
+.vgui-tree__image--expanded::after,
+.vgui-tree__image--collapsed::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: calc(-1 * (var(--vgui-min-target-size, 24px) - var(--vgui-tree-glyph-size, 13px)));
+  /* The growth is to the left, into the node's own indent, so the label is
+     never covered and the node above/below never loses a click. */
+}
+
+.vgui-tree__text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vgui-tree__empty {
+  margin: 0;
+  padding: 4px;
+  color: var(--vgui-text);
+  font-size: var(--vgui-tree-font-size, 13px);
+}
+
+/* The selection live region: audible, never visible. */
+.vgui-tree__live {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}

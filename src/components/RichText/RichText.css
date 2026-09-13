@@ -1,0 +1,96 @@
+/*
+ * Green Steam rich text — `RichText` and its three inline runs
+ * (docs/components/RichText.md).
+ *
+ * `RichText` draws its own bevel *and* fills the interior with `DarkGreenBG`,
+ * which is what makes the 1px border read as a carved edge rather than a hollow
+ * outline. The frame orientation is the inverse of `Button`'s raised bevel.
+ *
+ * Two documented departures from the corpus live here:
+ *   - selected text is dark (`--vgui-selection-text`) rather than `White`,
+ *     because `MaizeBG` + white is 3.70:1 and foundations.md §10 baseline 1
+ *     requires dark text on every maize highlight;
+ *   - `url` gains a hover/focus colour, because the corpus's `"RichText
+ *     url:hover"` is a no-op and underline alone is the weaker signal.
+ *
+ * Component-local metrics are declared here per foundations.md §4 (with `var()`
+ * fallbacks, as the docs' convention requires); shared palette tokens are
+ * referenced bare.
+ */
+
+.vgui-rich-text {
+  --vgui-richtext-bg: var(--vgui-surface-dark); /* DarkGreenBG */
+  --vgui-richtext-text: var(--vgui-text-strong); /* textcolor = White */
+  --vgui-richtext-selection-bg: var(--vgui-accent-dark); /* MaizeBG */
+  --vgui-richtext-inset: 6px; /* RichText.InsetX / InsetY */
+  --vgui-richtext-font-weight-bold: 700; /* origin 1000; 700 always resolves */
+  --vgui-richtext-underline-offset: 2px;
+
+  position: relative;
+  background-color: var(--vgui-richtext-bg);
+  color: var(--vgui-richtext-text);
+  font-family: var(--vgui-font);
+  font-size: var(--vgui-font-size);
+  font-weight: normal;
+  /* Recessed: top/left dark, bottom/right lit. */
+  border-block-start: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
+  border-inline-start: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
+  border-inline-end: var(--vgui-bevel-width) solid var(--vgui-bevel-light);
+  border-block-end: var(--vgui-bevel-width) solid var(--vgui-bevel-light);
+  padding: var(--vgui-richtext-inset);
+}
+
+/* `RichTextInterior {}` — an empty hook kept for parity; it only removes the
+   paragraph margin the browser would otherwise add inside the frame. */
+.vgui-rich-text__interior {
+  margin: 0;
+}
+
+/*
+ * Two maizes exist: the corpus's `selectedbgcolor` (MaizeBG) and the theme
+ * layer's own `::selection`. Dark text is required on both, so the rule covers
+ * the container's own selection and any descendant's.
+ */
+.vgui-rich-text::selection,
+.vgui-rich-text ::selection {
+  background-color: var(--vgui-richtext-selection-bg);
+  color: var(--vgui-selection-text);
+}
+
+.vgui-rich-text__bold {
+  font-weight: var(--vgui-richtext-font-weight-bold, 700);
+}
+
+.vgui-rich-text__emphasis {
+  font-style: italic;
+}
+
+.vgui-rich-text__url {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: var(--vgui-richtext-underline-offset, 2px);
+}
+
+/* Not in the corpus, where hover is byte-identical to idle. */
+.vgui-rich-text__url:hover {
+  color: var(--vgui-text-hover);
+}
+
+/*
+ * The corpus's focus style is a 1px dotted `BorderDark` ring; the accessible
+ * ring is the default here, per foundations.md §10 — the Valve ring remains
+ * available as `--vgui-focus-ring-valve` for a `.vgui-crisp` subtree.
+ */
+.vgui-rich-text__url:focus-visible {
+  color: var(--vgui-text-hover);
+  outline: var(--vgui-focus-ring);
+  outline-offset: var(--vgui-focus-ring-offset);
+}
+
+/* Inside a List or a Panel the frame belongs to the container, not to us. */
+.vgui-rich-text--interior,
+.vgui-rich-text--list {
+  border: 0;
+  padding: 0;
+  background: transparent;
+}

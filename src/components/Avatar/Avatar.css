@@ -1,0 +1,136 @@
+/*
+ * Green Steam avatar — the client-only `AvatarImage` of the friends panel and
+ * the account button (docs/components/Avatar.md).
+ *
+ * The avatar itself has no `steam.styles` block: it paints a bitmap, so there is
+ * nothing to transcribe except the placeholder colour `Friends.NoAvatarOver`
+ * (`steam.styles:361`) and the neighbouring friends-list tokens. The frame is a
+ * library construction consistent with `Panel`; the status ring is a library
+ * construction with no corpus artwork behind it.
+ *
+ * No artwork is shipped: the placeholder is drawn as `::after` content.
+ *
+ * Component-local metrics are declared here per foundations.md §4; shared
+ * palette tokens are referenced bare.
+ */
+
+.vgui-avatar {
+  --vgui-avatar-size: 42px;
+  --vgui-avatar-status-size: 2px;
+  --vgui-avatar-frame-width: 1px;
+
+  position: relative;
+  box-sizing: border-box;
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  /* The frame owns the size, so the space is reserved before the image exists
+     and a late avatar cannot shift the layout. */
+  inline-size: var(--vgui-avatar-size);
+  block-size: var(--vgui-avatar-size);
+  padding: var(--vgui-avatar-frame-width);
+  /* Square: the theme has no round mask anywhere, and VGUI-era avatars are not
+     round. `--round` is offered for completeness only. */
+  border-radius: 0;
+  border-block-start: var(--vgui-avatar-frame-width) solid var(--vgui-bevel-light);
+  border-inline-start: var(--vgui-avatar-frame-width) solid var(--vgui-bevel-light);
+  border-block-end: var(--vgui-avatar-frame-width) solid var(--vgui-bevel-dark);
+  border-inline-end: var(--vgui-avatar-frame-width) solid var(--vgui-bevel-dark);
+  background-color: var(--vgui-surface-dark);
+  overflow: hidden;
+}
+
+.vgui-avatar__image {
+  inline-size: 100%;
+  block-size: 100%;
+  /* Centre-crop: a non-square upload must never letterbox in a square frame. */
+  object-fit: cover;
+  object-position: center;
+  display: block;
+  /* `theme.css` ships a global `img { object-fit: contain; margin: 2px; border:
+     solid 2px var(--vgui-bevel-light) }`. The frame above owns the bevel and the
+     size, so the inherited margin and border are cancelled — the grey inherited
+     border is 1.66:1 on `--vgui-surface` and 2.30:1 on `--vgui-surface-dark`,
+     under the 3:1 WCAG 1.4.11 asks of a boundary.
+     `image-rendering: pixelated` is deliberately *not* set here: it is part of
+     the `.vgui-crisp` opt-in (theme.css) and inherits from it, because forcing
+     it overrides the user's own rendering preference. */
+  border: 0;
+  margin: 0;
+}
+
+/* The no-avatar state: a white glyph over the box, `Friends.NoAvatarOver`. */
+.vgui-avatar--placeholder .vgui-avatar__image,
+.vgui-avatar__image[data-failed='true'] {
+  visibility: hidden;
+}
+
+.vgui-avatar--placeholder::after {
+  content: attr(data-initials);
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font: inherit;
+  font-size: calc(var(--vgui-avatar-size) * 0.4);
+  line-height: 1;
+  color: var(--vgui-text-strong);
+  background-color: var(--vgui-surface-dark);
+  text-transform: uppercase;
+}
+
+/* `accountbutton.layout:179` and `FriendOnlineNotification.res:26`. */
+.vgui-avatar--sm {
+  --vgui-avatar-size: 24px;
+}
+
+.vgui-avatar--md {
+  --vgui-avatar-size: 42px;
+}
+
+/* A library extension: no large avatar exists in this resource set. */
+.vgui-avatar--lg {
+  --vgui-avatar-size: 64px;
+}
+
+/* Picture alone, no chrome. */
+.vgui-avatar--bare {
+  border: 0;
+  padding: 0;
+}
+
+.vgui-avatar--round,
+.vgui-avatar--round .vgui-avatar__status {
+  border-radius: 50%;
+}
+
+/* The status ring: a 2px frame edge, not a corner pip and not a filled badge.
+   Decorative by construction — presence is carried by the row's text. */
+.vgui-avatar__status {
+  position: absolute;
+  inset: 0;
+  border: var(--vgui-avatar-status-size) solid var(--vgui-text-dim);
+  pointer-events: none;
+}
+
+.vgui-avatar__status--online {
+  border-color: var(--vgui-steam-green); /* FullGreen */
+}
+
+.vgui-avatar__status--away {
+  border-color: var(--vgui-heading);
+}
+
+.vgui-avatar__status--busy {
+  border-color: var(--vgui-danger);
+}
+
+.vgui-avatar__status--offline {
+  border-color: var(--vgui-text-dim);
+}
+
+/* The friends list is its own visual world: `IgnoredColor` is not a list token.
+   A tinted frame, never a desaturated face. */
+.vgui-avatar--ignored {
+  border-color: var(--vgui-friends-ignored);
+}

@@ -1,0 +1,116 @@
+/*
+ * Green Steam checkbox.
+ *
+ * The signature detail is the **inverted** bevel: dark on top/left, light on
+ * bottom/right, so the box reads as a hole in the panel rather than a raised
+ * button (docs/components/Checkbox.md). Getting it the same way round as
+ * `.vgui-button` is the common mistake.
+ *
+ * The sprite set is replaced with CSS geometry — a rotated bordered box for
+ * `chkSelStd`, a filled rect for `chkIndeterminate` — so no assets ship.
+ *
+ * Deviations required by WCAG:
+ *
+ *   - `chk*Focus`'s dotted `#000` inner rectangle is 1.15:1 on the box face, so
+ *     the shipped ring is `--vgui-focus-ring` at the same `-3px` offset (the
+ *     geometry still reads as VGUI); the literal ring is the `.vgui-crisp`
+ *     opt-in.
+ *   - The 15×15 box is below the 24×24 minimum target, so the whole row is the
+ *     hit area: the control is wrapped in a `<label>`, exactly as VGUI's
+ *     `labelTextOffset` made the label part of the clickable region.
+ */
+
+.vgui-checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font: inherit;
+  color: var(--vgui-text);
+  cursor: pointer;
+}
+
+/* Hidden but present and focusable — never `display: none`. */
+.vgui-checkbox__input {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.vgui-checkbox__box {
+  position: relative;
+  flex: 0 0 auto;
+  box-sizing: border-box;
+  inline-size: var(--vgui-checkbox-size);
+  block-size: var(--vgui-checkbox-size);
+  background-color: var(--vgui-surface);
+  border-top: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
+  border-left: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
+  border-bottom: var(--vgui-bevel-width) solid var(--vgui-bevel-light);
+  border-right: var(--vgui-bevel-width) solid var(--vgui-bevel-light);
+}
+
+/* `chkSelStd` as two borders on a rotated box: a shape, not a colour signal. */
+.vgui-checkbox__input:checked ~ .vgui-checkbox__box::after {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 1px;
+  inline-size: 5px;
+  block-size: 8px;
+  border-right: 2px solid var(--vgui-text-strong);
+  border-bottom: 2px solid var(--vgui-text-strong);
+  transform: rotate(45deg);
+}
+
+/*
+ * `chkIndeterminate` is a horizontal bar. It is easy to miss on its own, which
+ * is why the real input carries the state and announces "mixed".
+ */
+.vgui-checkbox__input:indeterminate ~ .vgui-checkbox__box::after {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: 5px;
+  inline-size: 9px;
+  block-size: 3px;
+  background-color: var(--vgui-text-strong);
+  transform: none;
+  border: 0;
+}
+
+.vgui-checkbox__input:focus-visible ~ .vgui-checkbox__box {
+  outline: var(--vgui-focus-ring);
+  outline-offset: var(--vgui-focus-ring-offset);
+}
+
+/* Valve's literal `chk*Focus` ring, reachable only through the opt-in. */
+.vgui-crisp .vgui-checkbox__input:focus-visible ~ .vgui-checkbox__box {
+  outline: var(--vgui-focus-ring-valve);
+  outline-offset: var(--vgui-focus-ring-valve-offset);
+}
+
+/* DisabledText1 over DisabledText2 at +1px +1px. Colour is decorative here:
+ * the `disabled` attribute is what carries the meaning. */
+.vgui-checkbox__input:disabled ~ .vgui-checkbox__label {
+  color: var(--vgui-text-disabled);
+  text-shadow: 1px 1px 0 var(--vgui-text-disabled-shadow);
+}
+
+.vgui-checkbox__input:disabled ~ .vgui-checkbox__box {
+  cursor: not-allowed;
+}
+
+.vgui-checkbox--label-end {
+  flex-direction: row-reverse;
+}
+
+.vgui-checkbox__label {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}

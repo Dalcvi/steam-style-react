@@ -1,0 +1,162 @@
+/*
+ * Green Steam toggle button.
+ *
+ * A `Button` that remembers its state. Three recorded differences from
+ * `.vgui-button` (docs/components/ToggleButton.md):
+ *
+ *   1. `:Selected` inverts the bevel *and* darkens the face to `DarkGreenBG`
+ *      (`--vgui-surface-dark`), because a pressed toggle is a state and not a
+ *      transient `:active`.
+ *   2. It *does* have a `MouseOver` border in `steam.styles`, so unlike a plain
+ *      button it reacts to hover.
+ *   3. `font "UiBold"`, so it is dimensionally identical to `Button` and the
+ *      two mix freely in a toolbar.
+ *
+ * The pressed state is styled from `[aria-pressed="true"]` — the attribute is
+ * what assistive tech reads, and a class would be a second, divergable copy of
+ * the same bit.
+ *
+ * `:active` always inverts, even when already pressed: Valve's `Button:Active`
+ * border wins over `:Selected`, and letting `:active` un-invert a pressed toggle
+ * would make the press invisible.
+ *
+ * Two WCAG-mandated deviations: the accessible focus ring replaces the dashed
+ * `BorderDark` ring (1.87:1), and a pressed face that differs from the base by
+ * only 1.30:1 never carries the state on its own — `aria-pressed` does.
+ */
+
+.vgui-toggle-button {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: var(--vgui-field-inset);
+  min-height: var(--vgui-control-height);
+  min-width: var(--vgui-button-min-width);
+  padding: 0 8px 0 var(--vgui-field-inset);
+  font: inherit;
+  font-weight: lighter;
+  color: var(--vgui-text-strong);
+  background-color: var(--vgui-surface);
+  border-top: var(--vgui-bevel-width) solid var(--vgui-bevel-light);
+  border-left: var(--vgui-bevel-width) solid var(--vgui-bevel-light);
+  border-bottom: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
+  border-right: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
+  cursor: pointer;
+}
+
+/* 1.30:1 against the base surface: decorative, never the only affordance. */
+.vgui-toggle-button:hover {
+  background-color: var(--vgui-surface-light);
+}
+
+/* Pressing and being pressed both invert; `:active` is not a no-op when on. */
+.vgui-toggle-button:active,
+.vgui-toggle-button[aria-pressed='true'] {
+  border-top-color: var(--vgui-bevel-dark);
+  border-left-color: var(--vgui-bevel-dark);
+  border-bottom-color: var(--vgui-bevel-light);
+  border-right-color: var(--vgui-bevel-light);
+}
+
+.vgui-toggle-button[aria-pressed='true'] {
+  background-color: var(--vgui-surface-dark);
+}
+
+.vgui-toggle-button:focus-visible {
+  outline: var(--vgui-focus-ring);
+  outline-offset: var(--vgui-focus-ring-offset);
+}
+
+.vgui-crisp .vgui-toggle-button:focus-visible {
+  outline: var(--vgui-focus-ring-valve);
+  outline-offset: var(--vgui-focus-ring-valve-offset);
+}
+
+.vgui-toggle-button:disabled {
+  cursor: not-allowed;
+  color: var(--vgui-text-disabled);
+  text-shadow: 1px 1px 0 var(--vgui-text-disabled-shadow);
+}
+
+/* Square glyph-only variant: an `IconButton` that latches. */
+.vgui-toggle-button--icon-only {
+  justify-content: center;
+  padding: 0;
+  min-width: var(--vgui-control-height);
+  inline-size: var(--vgui-control-height);
+}
+
+.vgui-toggle-button--small {
+  min-height: 18px;
+  min-width: 60px;
+  padding: 0 var(--vgui-field-inset);
+  font-size: var(--vgui-font-size-small);
+}
+
+/* Declared after `[aria-pressed]` so the grey face wins in both states; the
+ * bevel still inverts, which is what carries "on" on this variant. */
+.vgui-toggle-button--clay {
+  background-color: var(--vgui-clay-button);
+}
+
+.vgui-toggle-button__icon {
+  display: block;
+  flex: 0 0 auto;
+  inline-size: var(--vgui-checkbox-size);
+  block-size: var(--vgui-checkbox-size);
+  background-color: currentColor;
+  -webkit-mask-image: var(--vgui-toggle-button-icon, none);
+  mask-image: var(--vgui-toggle-button-icon, none);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+}
+
+/* A caller-supplied node paints itself; `currentColor` still reaches it. */
+.vgui-toggle-button__icon--node {
+  background-color: transparent;
+}
+
+.vgui-toggle-button__icon--node > svg {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+  fill: currentColor;
+}
+
+.vgui-toggle-button__label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/*
+ * Segmented group (docs/components/ToggleButton.md, "Variants"): siblings share
+ * their inner edges. The React API exposes no `segmented` prop, so the group is
+ * opt-in markup — a wrapper with `role="group"` and an `aria-label` — and the
+ * group collapses its children's duplicated edges. `min-width: 0` drops VGUI's
+ * 75px floor, so the padding is raised to keep every segment wider than the
+ * 24px minimum target.
+ */
+.vgui-toggle-group {
+  display: inline-flex;
+}
+
+.vgui-toggle-group .vgui-toggle-button {
+  min-width: 0;
+  padding-block: 0;
+  padding-inline: calc(var(--vgui-field-inset) * 2);
+}
+
+.vgui-toggle-group .vgui-toggle-button--icon-only {
+  padding-inline: 0;
+}
+
+.vgui-toggle-group .vgui-toggle-button + .vgui-toggle-button {
+  margin-left: calc(-1 * var(--vgui-bevel-width));
+}

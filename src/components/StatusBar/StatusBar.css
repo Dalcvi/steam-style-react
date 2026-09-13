@@ -1,0 +1,97 @@
+/*
+ * Green Steam status bar.
+ *
+ * A 28px strip: a `StatusLabel`, an optional slim progress bar, and nothing
+ * else (docs/components/StatusBar.md). The strip is chrome — `flex: none` so it
+ * never scrolls away with the content.
+ *
+ * The slim bar is `SlimProgressBar`, not `ProgressBar`: one flat `fill()` call
+ * in the corpus, so a single `background-color` here. Give it a bevel and a 3px
+ * bar has a 1px interior.
+ *
+ * The fill also carries a non-colour boundary cue (`--vgui-bevel-light-strong`
+ * on its leading edge) because the fill/trough pair measures 2.77:1 and the 3px
+ * height compounds it (docs/components/StatusBar.md, Accessibility).
+ *
+ * Component-local metrics are declared here per foundations.md §4; palette
+ * tokens are referenced bare.
+ */
+
+.vgui-status-bar {
+  --vgui-status-bar-height: 28px;
+  --vgui-status-bar-progress-width: 300px;
+  --vgui-status-bar-progress-height: 3px;
+
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center; /* the corpus places both children centred */
+  gap: 8px;
+  min-block-size: var(--vgui-status-bar-height);
+  padding-block: 0;
+  padding-inline: 8px;
+  background-color: var(--vgui-surface);
+  border-block-start: var(--vgui-bevel-width) solid var(--vgui-bevel-light);
+  color: var(--vgui-text-muted);
+  font: inherit;
+  font-size: var(--vgui-font-size);
+  flex: none;
+}
+
+/* The slim bar — one flat fill, no bevel, no stripes. */
+.vgui-status-bar__progress {
+  box-sizing: border-box;
+  flex: none;
+  inline-size: var(--vgui-status-bar-progress-width);
+  block-size: var(--vgui-status-bar-progress-height);
+  overflow: hidden;
+  background-color: var(--vgui-surface-dark);
+  border: 0; /* barinset=0 */
+}
+
+.vgui-status-bar__progress > * {
+  box-sizing: border-box;
+  block-size: 100%;
+  background-color: var(--vgui-accent-darker);
+  border-inline-end: var(--vgui-bevel-width) solid var(--vgui-bevel-light-strong);
+}
+
+/* The 3px bar conveys nothing to a low-vision user, so the percentage is text. */
+.vgui-status-bar__value {
+  flex: none;
+  font-size: var(--vgui-font-size-small);
+}
+
+/*
+ * Multi-field strip: the "bottom strip of status fields" case. Same height, same
+ * separator, children laid out in a row.
+ */
+.vgui-status-bar--fields {
+  justify-content: flex-start;
+  gap: 16px;
+}
+
+.vgui-status-bar--fields > *:last-child {
+  margin-inline-start: auto;
+}
+
+/*
+ * `--message-only` is the default layout with the progress region omitted, so
+ * the modifier declares nothing itself; it is emitted so a caller can target the
+ * state.
+ */
+.vgui-status-bar--left {
+  justify-content: flex-start;
+}
+
+.vgui-status-bar--left .vgui-status-bar__message {
+  min-inline-size: 16ch; /* reserved so the bar does not slide as text changes */
+}
+
+.vgui-status-bar--compact {
+  --vgui-status-bar-height: 20px;
+}
+
+.vgui-status-bar--error .vgui-status-bar__message {
+  color: var(--vgui-danger);
+}

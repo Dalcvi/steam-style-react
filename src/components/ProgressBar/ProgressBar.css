@@ -1,0 +1,108 @@
+/*
+ * Green Steam progress bar — VGUI `ProgressBar` / `ContinuousProgressBar`
+ * (docs/components/ProgressBar.md).
+ *
+ * The three details that make this read as Valve's bar rather than a generic
+ * one:
+ *
+ *   1. The trough is `--vgui-surface-dark`, not black — the bar is a recess in
+ *      the panel, not a hollowed-out text field.
+ *   2. The fill is a *stripe*: 8px of maize, then 4px of trough, every 12px.
+ *   3. The fill is inset 4px inside the 26px trough, giving the 16px fill.
+ *
+ * `--vgui-progress-fill` and `--vgui-progress-stripe` are declared here rather
+ * than in `tokens.css` because the token layer's own `--vgui-progress-fill`
+ * means the *height* of the fill; see docs/components/ProgressBar.md.
+ */
+
+.vgui-progress {
+  --vgui-progress-stripe: 12px;
+  --vgui-progress-fill: 8px;
+  --vgui-progress-inset: 4px;
+  --vgui-progress-max-width: 480px;
+
+  display: block;
+  width: 100%;
+  max-width: var(--vgui-progress-max-width);
+}
+
+.vgui-progress__trough {
+  box-sizing: border-box;
+  position: relative;
+  height: 26px;
+  padding: var(--vgui-progress-inset);
+  background-color: var(--vgui-surface-dark);
+  /* Inset: the bar is recessed into the panel rather than raised off it. */
+  border-top: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
+  border-left: var(--vgui-bevel-width) solid var(--vgui-bevel-dark);
+  border-bottom: var(--vgui-bevel-width) solid var(--vgui-bevel-light);
+  border-right: var(--vgui-bevel-width) solid var(--vgui-bevel-light);
+}
+
+.vgui-progress__fill {
+  box-sizing: border-box;
+  height: 100%;
+  width: var(--vgui-progress, 0%);
+  /* The boundary cue: the fill's own 2.77:1 against the trough fails WCAG
+   * 1.4.11, so the extent is carried by a 5.40:1 leading edge. */
+  border-right: var(--vgui-bevel-width) solid var(--vgui-bevel-light-strong);
+  background-image: repeating-linear-gradient(
+    to right,
+    var(--vgui-accent-darker) 0 var(--vgui-progress-fill),
+    var(--vgui-surface-dark) var(--vgui-progress-fill) var(--vgui-progress-stripe)
+  );
+  /* Anchors the stripe phase to the bar's left edge so the pattern does not
+   * slide as the value changes. */
+  background-attachment: local;
+  background-repeat: repeat-x;
+  transition: width 120ms linear;
+}
+
+.vgui-progress__text {
+  display: block;
+  margin-top: 2px;
+  font-size: var(--vgui-font-size-small);
+  color: var(--vgui-text);
+  text-align: center;
+}
+
+.vgui-progress--small .vgui-progress__trough {
+  --vgui-progress-inset: 2px;
+
+  height: 16px;
+}
+
+/* Both variants advance on their own, so both animate — and never `width`. */
+.vgui-progress--indeterminate .vgui-progress__fill,
+.vgui-progress--continuous .vgui-progress__fill {
+  width: 100%;
+  background-size: 240px 100%;
+  animation: vgui-progress-sweep 1.2s linear infinite;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes vgui-progress-sweep {
+    from {
+      background-position-x: 0;
+    }
+
+    to {
+      background-position-x: 240px;
+    }
+  }
+}
+
+/* Without motion an indeterminate bar becomes a full static stripe. */
+@media (prefers-reduced-motion: reduce) {
+  .vgui-progress--indeterminate .vgui-progress__fill,
+  .vgui-progress--continuous .vgui-progress__fill {
+    animation: none;
+    opacity: 0.6;
+  }
+}
+
+/* The frame carries the error, not the fill. */
+.vgui-progress--error .vgui-progress__trough {
+  border-top-color: var(--vgui-danger);
+  border-left-color: var(--vgui-danger);
+}

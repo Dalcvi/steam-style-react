@@ -13,5 +13,5 @@
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true
   },
-  "include": ["vite.config.ts", ".storybook"]
+  "include": ["vite.config.ts", "vitest.config.ts", ".storybook"]
 }
