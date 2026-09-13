@@ -43,6 +43,7 @@ import.
 | Component | Description |
 | --- | --- |
 | `GreenButton` | Classic VGUI push button. Supports `fullWidth` on top of all `<button>` props. |
+| `GreenPanel` | VGUI container with the beveled border and an optional uppercase title bar. Supports `inset` and `rounded`. |
 
 More components are on the way; each one will get its own CSS file plus a
 Storybook story.
@@ -91,6 +92,8 @@ src/
       GreenButton.css         # colocated styles, imported by the component
       GreenButton.stories.tsx
       index.ts
+    GreenPanel/
+      ...
 ```
 
 To add a component: create a folder under `src/components/`, export it from its
@@ -102,7 +105,7 @@ own `index.ts` **and** from `src/index.ts`, and add a story next to it.
 | --- | --- | --- |
 | `.github/workflows/ci.yml` | push to `main`, PRs | Typechecks, builds the library and Storybook, uploads `dist` as an artifact. |
 | `.github/workflows/pages.yml` | push to `main` | Builds Storybook and deploys it to GitHub Pages. |
-| `.github/workflows/release.yml` | push to `main` | Opens/updates the *“chore: version packages”* PR, then publishes to npm **with provenance** and creates the GitHub release once that PR is merged. |
+| `.github/workflows/release.yml` | **CI** finishing successfully on `main` | Opens/updates the *“chore: version packages”* PR, then publishes to npm **with provenance** and creates the GitHub release once that PR is merged. Never runs on a plain push, so a red CI run cannot release. |
 
 ### Releasing
 
