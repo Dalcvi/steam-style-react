@@ -42,7 +42,7 @@ jobs:
           enablement: true
 
       - name: Build Storybook
-        run: pnpm run build-storybook -- --output-dir storybook-static
+        run: pnpm run build-storybook
         env:
           # Project Pages are served from https://<owner>.github.io/<repo>/
           STORYBOOK_BASE_PATH: /${{ github.event.repository.name }}/
